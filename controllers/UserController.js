@@ -36,3 +36,5 @@ async function createUser(username, email, password){
         }).catch(() => {reject("Server salt error, please try again.")});
     });
 }
+
+exports.createUser = createUser;
