@@ -15,7 +15,7 @@ function registerFormSubmit(event){
         password: password
     }
 
-    fetch("194.113.74.197/adduser", {
+    fetch("/adduser", {
         method: 'POST',
         headers: {
             "Content-Type": "application/json",
