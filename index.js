@@ -1,5 +1,3 @@
-document.getElementById('registerButton').addEventListener('click', registerFormSubmit);
-
 function registerFormSubmit(event){
     event.preventDefault();
 
