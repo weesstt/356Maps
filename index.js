@@ -21,7 +21,7 @@ function registerFormSubmit(event){
             "Content-Type": "application/json",
             // 'Content-Type': 'application/x-www-form-urlencoded',
           },
-        body: JSON.stringify(data)
+        body: JSON.stringify(formData)
     }).then(() => {
         successMsgElement.innerHTML = "User registered, please check your email to verify your account."
     }).catch((error) => {
