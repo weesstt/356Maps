@@ -1,0 +1,44 @@
+<html>
+    <script>
+        function switchForm(){
+            const registerForm = document.getElementById("registerForm");
+            const loginForm = document.getElementById("loginForm");
+            const switchButton = document.getElementById("switch");
+
+            if(registerForm.style.display == "none"){
+                loginForm.style.display = "none";
+                registerForm.style.display = "flex";
+                switchButton.innerHTML = "Login";
+            }else{
+                loginForm.style.display = "flex";
+                registerForm.style.display = "none";
+                switchButton.innerHTML = "Register";
+            }
+        }
+    </script>
+
+    <head>
+        <link rel="stylesheet" href="index.css"></link>
+    </head>
+
+    <body>
+        <div class="formDiv">
+            <form id="registerForm" class="form" method="post" action="/adduser" style="display: none;">
+                <input type="text" name="email" class="nameInput" placeholder="Enter Email" required></input>
+                <input type="text" name="username" class="nameInput" placeholder="Enter Username" required></input>
+                <input type="password" name="password" class="nameInput" placeholder="Enter Password" required></input>
+                <button type="submit" class="submitButton">Register</button>
+                <p class="errorText"></p>
+                <p class="successText"></p>
+            </form>
+            <form id="loginForm" class="form" method="post" action="/login">
+                <input type="text" name="username" class="nameInput" placeholder="Enter Username" required></input>
+                <input type="password" name="password" class="nameInput" placeholder="Enter Password" required></input>
+                <button type="submit" class="submitButton">Login</button>
+                <p class="errorText"></p>
+                <p class="successText"></p>
+            </form>
+            <button id="switch" class="switchButton" onClick="switchForm()">Register</button> 
+        </div>
+    </body>
+</html>
