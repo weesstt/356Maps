@@ -22,8 +22,14 @@ function registerFormSubmit(event){
             // 'Content-Type': 'application/x-www-form-urlencoded',
           },
         body: JSON.stringify(formData)
-    }).then(() => {
-        successMsgElement.innerHTML = "User registered, please check your email to verify your account."
+    }).then((response) => {
+        const jsonResp = response.json();
+
+        if (!response.ok) {
+            errorMsgElement.innerHTML = jsonResp.errorMsg;
+        }else{
+            successMsgElement.innerHTML = "User successfully registered, please check your email to verify your account."
+        }
     }).catch((error) => {
         errorMsgElement.innerHTML = error;
     })
