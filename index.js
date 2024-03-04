@@ -1,9 +1,10 @@
 function registerFormSubmit(event){
     event.preventDefault();
 
-    const email = this.elements["email"].value;
-    const username = this.elements["username"].value;
-    const password = this.elements["password"].value;
+    const form = document.getElementById("registerForm");
+    const email = form.elements["email"].value;
+    const username = form.elements["username"].value;
+    const password = form.elements["password"].value;
 
     const successMsgElement = document.getElementById("successText");
     const errorMsgElement = document.getElementById("errorText");
