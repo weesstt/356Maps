@@ -1,7 +1,11 @@
-function formSubmit(event){
-    const email = this.elements["username"].value;
+document.getElementById('registerButton').addEventListener('click', registerFormSubmit);
+
+function registerFormSubmit(event){
+    event.preventDefault();
+
+    const email = this.elements["email"].value;
     const username = this.elements["username"].value;
-    const password = this.elements["username"].value;
+    const password = this.elements["password"].value;
 
     const successMsgElement = document.getElementById("successText");
     const errorMsgElement = document.getElementById("errorText");
@@ -24,6 +28,4 @@ function formSubmit(event){
     }).catch((error) => {
         errorMsgElement.innerHTML = error;
     })
-
-    event.preventDefault();
 }

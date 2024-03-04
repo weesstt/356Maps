@@ -11,10 +11,12 @@ async function createUser(username, email, password){
         
         if(emailResults.length !== 0){
             reject("A user with that email already exists");
+            return;
         }
 
         if(usernameResults.length !== 0){
             reject("A user with that username already exists");
+            return;
         }
 
         const saltRounds = 10;
