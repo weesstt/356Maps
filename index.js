@@ -23,13 +23,13 @@ function registerFormSubmit(event){
           },
         body: JSON.stringify(formData)
     }).then((response) => {
-        const jsonResp = response.json();
-
-        if (!response.ok) {
-            errorMsgElement.innerHTML = jsonResp.errorMsg;
-        }else{
-            successMsgElement.innerHTML = "User successfully registered, please check your email to verify your account."
-        }
+        response.json().then((data) => {
+            if (!response.ok) {
+                errorMsgElement.innerHTML = data.errorMsg;
+            }else{
+                successMsgElement.innerHTML = "User successfully registered, please check your email to verify your account."
+            }
+        });
     }).catch((error) => {
         errorMsgElement.innerHTML = error;
     })
