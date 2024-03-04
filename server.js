@@ -2,6 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const MongoStore = require("connect-mongo");
 const bcrypt = require("bcrypt");
+const UserModel = require("./models/users.js");
+const UserController = require("./controllers/UserController.js");
+
 
 var sessions = require("express-session");
 const secret = process.argv[2];
@@ -71,4 +74,20 @@ app.get("/index.html", (req, res) => {
 
 app.get("/index.css", (req, res) => {
     res.sendFile(__dirname + "/index.css");
+})
+
+app.post("/adduser", (req, res) => {
+    const username = req.username;
+    const email = req.email;
+    const password = req.password;
+
+    if(username.length === 0 || email.length === 0 || password.length === 0){
+        //redirect to home with error message
+    }
+
+    UserController.createUser(username, email, password).then((verifyKey) => {
+        res.send({status: "success"})
+    }).catch((error) => {
+        res.send({status: "error", errorMsg: error})
+    })
 })
