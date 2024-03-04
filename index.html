@@ -29,12 +29,12 @@
                 <input type="text" name="email" class="nameInput" placeholder="Enter Email" required></input>
                 <input type="text" name="username" class="nameInput" placeholder="Enter Username" required></input>
                 <input type="password" name="password" class="nameInput" placeholder="Enter Password" required></input>
-                <button type="submit" class="submitButton">Register</button>
+                <button type="submit" class="submitButton" onClick="formSubmit">Register</button>
             </form>
             <form id="loginForm" class="form" method="post" action="/login">
                 <input type="text" name="username" class="nameInput" placeholder="Enter Username" required></input>
                 <input type="password" name="password" class="nameInput" placeholder="Enter Password" required></input>
-                <button type="submit" class="submitButton" onClick="formSubmit">Login</button>
+                <button type="submit" class="submitButton">Login</button>
             </form>
             <p id="errorText" class="errorText"></p>
             <p id="successText"class="successText"></p>
