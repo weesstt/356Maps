@@ -75,6 +75,10 @@ app.get("/index.css", (req, res) => {
     res.sendFile(__dirname + "/index.css");
 })
 
+app.get("/index.js", (req, res) => {
+    res.sendFile(__dirname + "/index.js");
+})
+
 app.post("/adduser", (req, res) => {
     const username = req.body.username;
     const email = req.body.email;

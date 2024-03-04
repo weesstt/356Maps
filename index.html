@@ -19,6 +19,7 @@
 
     <head>
         <link rel="stylesheet" href="index.css"></link>
+        <script src="html.js"></script>
     </head>
 
     <body>
@@ -29,16 +30,14 @@
                 <input type="text" name="username" class="nameInput" placeholder="Enter Username" required></input>
                 <input type="password" name="password" class="nameInput" placeholder="Enter Password" required></input>
                 <button type="submit" class="submitButton">Register</button>
-                <p class="errorText"></p>
-                <p class="successText"></p>
             </form>
             <form id="loginForm" class="form" method="post" action="/login">
                 <input type="text" name="username" class="nameInput" placeholder="Enter Username" required></input>
                 <input type="password" name="password" class="nameInput" placeholder="Enter Password" required></input>
                 <button type="submit" class="submitButton">Login</button>
-                <p class="errorText"></p>
-                <p class="successText"></p>
             </form>
+            <p id="errorText" class="errorText"></p>
+            <p id="successText"class="successText"></p>
             <button id="switch" class="switchButton" onClick="switchForm()">Register</button> 
         </div>
     </body>
