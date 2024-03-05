@@ -130,7 +130,7 @@ app.post("/adduser", (req, res) => {
 });
 
 app.get("/verify", (req, res) => {
-    if (req.params[email] !== undefined && req.params[key] !== undefined){
+    if (req.params["email"] !== undefined && req.params["key"] !== undefined){
         const email = req.params[email];
         const key = req.params[key]; 
 
