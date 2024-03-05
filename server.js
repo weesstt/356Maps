@@ -6,6 +6,7 @@ const MongoStore = require("connect-mongo");
 const bcrypt = require("bcrypt");
 const UserModel = require("./models/users.js");
 const UserController = require("./controllers/UserController.js");
+const nodemailer = require('nodemailer');
 
 var sessions = require("express-session");
 const secret = process.argv[2];
@@ -24,10 +25,19 @@ const server = app.listen(80, () => {
         });
     }
 
-    mongoose.connect(mongoDB, {}); //{useNewUrlParser: true, useUnifiedTopology: true} deprecated?
+    mongoose.connect(mongoDB, {});
     db = mongoose.connection;
     db.on("error", console.error.bind(console, "MongoDB connection error"));
 });
+
+let mailTransport = nodemailer.createTransport({
+    service: 'postfix',
+    host: 'localhost',
+    secure: false,
+    port: 25,
+    auth: { user: 'root@cse356.compas.cs.stonybrook.edu', pass: '' },
+    tls: { rejectUnauthorized: false }
+  });
 
 process.on("SIGINT", () => {
     server.close(() => {
@@ -92,16 +102,51 @@ app.post("/adduser", (req, res) => {
 
     if (username.length === 0 || email.length === 0 || password.length === 0) {
         //redirect to home with error message
+        res.redirect("/?error='Incorrect number of arguments posted!'");
     }
 
     UserController.createUser(username, email, password)
         .then((verifyKey) => {
-            res.send({ status: "success" });
+            let mailOptions = {
+                from: 'warmup2@cse356.compas.cs.stonybrook.edu',
+                to: 'austinwwest@gmail.com',
+                subject: 'Welcome to Warm Up Project 2, please verify your account.',
+                text: 'Thank you for signing up for warm up project 2. Please click the link below to verify your account and sign in.\n' + 'http://green.cse356.compas.cs.stonybrook.edu/verify?email=' + email + '&key=' + verifyKey
+            };
+            
+            mailTransport.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                res.send({ status: "error", errorMsg: error });
+                res.redirect("/?error='" + error + "'");
+            } else {
+                res.send({ status: "success" });
+                res.redirect("/?success='Successfully signed up, please check your email to verify your account.'");
+            }
+            });
         })
         .catch((error) => {
-            res.status(400).send({ status: "error", errorMsg: error });
+            res.send({ status: "error", errorMsg: error });
+            res.redirect("/?error='" + error + "'");
         });
 });
+
+app.get("/verifyKey", (req, res) => {
+    if (req.params.email !== undefined && req.params.key !== undefined){
+        const email = req.params.email;
+        const key = req.params.key; 
+
+        UserController.verifyUser(email, key).then((success) => {
+            res.send({ status: 'success' });
+            res.redirect("/?success='" + success + "'")
+        }).catch((error) => {
+            res.send({ status: 'error', errorMsg: error })
+            res.redirect("/?error='" + error + "'");
+        })
+    } else {
+        res.send({status: 'error', errorMsg: 'Missing email or key'});
+        res.redirect("/?error='Missing email or key'")
+    }
+})
 
 app.get("/tiles/l:layer/:v/:h.jpg", (req, res) => {
     const { layer, v, h } = req.params;
@@ -114,11 +159,11 @@ app.get("/tiles/l:layer/:v/:h.jpg", (req, res) => {
             .grayscale()
             .toBuffer((err, data, info) => {
                 if (err) {
-                    res.status(404).send("Not Found");
+                    res.send("Not Found");
                 } else {
                     res.set("Content-Type", "image/jpeg");
                     res.send(data);
                 }
             });
-    } else res.status(404).send("Not Found");
+    } else res.send("Not Found");
 });

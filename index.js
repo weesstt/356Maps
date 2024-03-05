@@ -1,3 +1,18 @@
+window.onload = function() {
+    const successMsgElement = document.getElementById("successText");
+    const errorMsgElement = document.getElementById("errorText");
+
+    const searchParams = new URLSearchParams(window.location.search);
+
+    for(const [key, value] of searchParams){
+        if(key === "error"){
+            errorMsgElement.innerHTML = value;
+        }else if(key === "success"){
+            successMsgElement.innerHTML = value;
+        }
+    }
+}
+
 function registerFormSubmit(event){
     event.preventDefault();
 

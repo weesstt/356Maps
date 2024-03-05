@@ -39,4 +39,35 @@ async function createUser(username, email, password){
     });
 }
 
+async function verifyUser(email, providedKey){
+    let emailResults = await UserModel.find({email: email});
+    return new Promise((resolve, reject) => {
+        if(emailResults.length === 0){
+            reject("No user with that email exists, please register.");
+            return;
+        }
+
+        const user = emailResults[0];
+        const verified = user.verified;
+        const key = user.key;
+        
+        if(verified){
+            reject("This account has already been verified, please sign in");
+            return;
+        }
+
+        if(providedKey !== key){
+            reject("Invalid key to verify account, please try again.");
+            return;
+        }
+
+        UserModel.findByIdAndUpdate(user.id, {verified: true}).then(() => {
+            resolve("Account verified, please sign in.");
+        }).catch(() => {
+            reject("Database error, please try again.");
+        })
+    });
+}
+
 exports.createUser = createUser;
+exports.verifyUser = verifyUser;
