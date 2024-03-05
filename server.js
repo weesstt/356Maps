@@ -102,7 +102,8 @@ app.post("/adduser", (req, res) => {
 
     if (username.length === 0 || email.length === 0 || password.length === 0) {
         //redirect to home with error message
-        res.redirect("/?error='Incorrect number of arguments posted!'");
+        res.send({ status: 'error', errorMsg: 'Missing arguments!' })
+        return;
     }
 
     UserController.createUser(username, email, password)
@@ -117,7 +118,6 @@ app.post("/adduser", (req, res) => {
             mailTransport.sendMail(mailOptions, (error, info) => {
             if (error) {
                 res.send({ status: "error", errorMsg: error });
-                res.redirect("/?error='" + error + "'");
             } else {
                 res.send({ status: "success" });
                 res.redirect("/?success='Successfully signed up, please check your email to verify your account.'");
@@ -126,25 +126,21 @@ app.post("/adduser", (req, res) => {
         })
         .catch((error) => {
             res.send({ status: "error", errorMsg: error });
-            res.redirect("/?error='" + error + "'");
         });
 });
 
-app.get("/verifyKey", (req, res) => {
+app.get("/verify", (req, res) => {
     if (req.params.email !== undefined && req.params.key !== undefined){
         const email = req.params.email;
         const key = req.params.key; 
 
         UserController.verifyUser(email, key).then((success) => {
             res.send({ status: 'success' });
-            res.redirect("/?success='" + success + "'")
         }).catch((error) => {
             res.send({ status: 'error', errorMsg: error })
-            res.redirect("/?error='" + error + "'");
         })
     } else {
         res.send({status: 'error', errorMsg: 'Missing email or key'});
-        res.redirect("/?error='Missing email or key'")
     }
 })
 
