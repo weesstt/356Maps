@@ -145,10 +145,6 @@ app.get("/verify", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
-    if (req.session.loggedIn) {
-        res.sendStatus(200);
-    }
-
     const username = req.body.username;
     const password = req.body.password;
 
@@ -160,6 +156,14 @@ app.post("/login", (req, res) => {
         .catch((error) => {
             res.status(401).send({errorMsg: error.message});
         })
+})
+
+app.get("/checkLogin", (req, res) => {
+    if (req.session.loggedIn) {
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(401);
+    }
 })
 
 app.post("/logout", (req, res) => {

@@ -11,6 +11,7 @@ window.onload = function() {
             successMsgElement.innerHTML = value;
         }
     }
+    checkLoginStatus();
 }
 
 function registerFormSubmit(event){
@@ -107,14 +108,12 @@ function logout(event) {
 }
 
 function checkLoginStatus() {
-    fetch("/login", {method: "POST"})
+    fetch("/checkLogin")
         .then((res) => {
             const formDiv = document.getElementsByClassName("formDiv")[0];
             const wp2Div = document.getElementById("wp2");
             if (!res.ok) {
-                res.json().then(() => {
-                    wp2Div.style.display = "none";
-                })
+                wp2Div.style.display = "none";
             } else {
                 // hide login form, show wp2 div
                 wp2Div.style.display = "block";
