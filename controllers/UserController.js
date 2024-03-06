@@ -30,7 +30,7 @@ async function createUser(username, email, password){
                 });
 
                 user.save().then((result) => {
-                    resolve(uuidv4());
+                    resolve(user.verifyKey);
                 }).catch((error) => {
                     reject("Server save error, please try again.");
                 });
@@ -49,7 +49,7 @@ async function verifyUser(email, providedKey){
 
         const user = emailResults[0];
         const verified = user.verified;
-        const key = user.key;
+        const key = user.verifyKey;
         
         if(verified){
             reject("This account has already been verified, please sign in");
