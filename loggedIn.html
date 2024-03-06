@@ -13,14 +13,12 @@
     <script>
         L.TileLayer.ImageColor = L.TileLayer.extend({
             getTileUrl: function (coords) {
-                console.log(coords);
                 return `http://194.113.74.197/tiles/l${coords.z}/${coords.x}/${coords.y}.jpg?style=color`;
             },
         });
 
         L.TileLayer.ImageBW = L.TileLayer.extend({
             getTileUrl: function (coords) {
-                console.log(coords);
                 return `http://194.113.74.197/tiles/l${coords.z}/${coords.x}/${coords.y}.jpg?style=bw`;
             },
         });
@@ -156,8 +154,6 @@
             /><label>bw</label>
         </form>
 
-        <div>
-            <canvas id="wp2"></canvas>
-        </div>
+        <div id="wp2"></div>
     </body>
 </html>
