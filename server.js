@@ -191,7 +191,7 @@ app.post("/logout", (req, res) => {
         res.clearCookie("session");
         // res.sendStatus(200);
         res.redirect("/");
-        res.send({ status: "OK" });
+        // res.send({ status: "OK" });
     });
 });
 
