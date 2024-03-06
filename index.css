@@ -56,3 +56,7 @@
 .switchButton:hover {
     background-color: darkgray;
 }
+
+#map {
+    height: 400px;
+}
