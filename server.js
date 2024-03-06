@@ -166,7 +166,8 @@ app.post("/login", (req, res) => {
     UserController.checkLogin(username, password)
         .then(() => {
             req.session.loggedIn = true;
-            res.sendStatus(200);
+            // res.sendStatus(200);
+            res.send({ status: "OK" });
         })
         .catch((error) => {
             res.send({ status: "ERROR", errorMsg: error.message });
@@ -175,9 +176,10 @@ app.post("/login", (req, res) => {
 
 app.get("/checkLogin", (req, res) => {
     if (req.session.loggedIn) {
-        res.sendStatus(200);
+        // res.sendStatus(200);
+        res.send({ status: "OK" });
     } else {
-        res.sendStatus(401);
+        res.send({ status: "ERROR", errorMsg: "Not logged in" });
     }
 });
 
@@ -187,7 +189,8 @@ app.post("/logout", (req, res) => {
             res.send({ status: "ERROR", errorMsg: err.message });
         }
         res.clearCookie("session");
-        res.sendStatus(200);
+        // res.sendStatus(200);
+        res.send({ status: "OK" });
     });
 });
 
