@@ -28,10 +28,10 @@
         const imageBW = new L.TileLayer.ImageBW();
 
         let map;
-        window.onload = () => {
+        window.addEventListener("load", () => {
             map = L.map("map");
             new imageColor.addTo(map);
-        };
+        });
 
         function switchStyle(style) {
             if (style == "color") {
