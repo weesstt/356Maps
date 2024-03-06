@@ -97,6 +97,7 @@ function logout(event) {
     event.preventDefault();
 
     const formDiv = document.getElementsByClassName("formDiv")[0];
+    const radioForm = document.getElementById("radioForm");
     const wp2Div = document.getElementById("wp2");
 
     fetch("/logout", {
@@ -105,6 +106,7 @@ function logout(event) {
         .then((res) => {
             if (res.ok) {
                 formDiv.style.display = "flex";
+                radioForm.remove();
                 wp2Div.remove();
             } else {
                 console.error("error");
