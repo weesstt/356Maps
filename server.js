@@ -6,7 +6,7 @@ const MongoStore = require("connect-mongo");
 const bcrypt = require("bcrypt");
 const UserModel = require("./models/users.js");
 const UserController = require("./controllers/UserController.js");
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 var sessions = require("express-session");
 const secret = process.argv[2];
@@ -31,13 +31,13 @@ const server = app.listen(80, () => {
 });
 
 let mailTransport = nodemailer.createTransport({
-    service: 'postfix',
-    host: 'localhost',
+    service: "postfix",
+    host: "localhost",
     secure: false,
     port: 25,
-    auth: { user: 'root@cse356.compas.cs.stonybrook.edu', pass: '' },
-    tls: { rejectUnauthorized: false }
-  });
+    auth: { user: "root@cse356.compas.cs.stonybrook.edu", pass: "" },
+    tls: { rejectUnauthorized: false },
+});
 
 process.on("SIGINT", () => {
     server.close(() => {
@@ -80,11 +80,19 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/index.html");
+    if (req.session.loggedIn) {
+        res.sendFile(__dirname + "/loggedIn.html");
+    } else {
+        res.sendFile(__dirname + "/index.html");
+    }
 });
 
 app.get("/index.html", (req, res) => {
-    res.sendFile(__dirname + "/index.html");
+    if (req.session.loggedIn) {
+        res.sendFile(__dirname + "/loggedIn.html");
+    } else {
+        res.sendFile(__dirname + "/index.html");
+    }
 });
 
 app.get("/index.css", (req, res) => {
@@ -102,26 +110,34 @@ app.post("/adduser", (req, res) => {
     const password = req.body.password;
 
     if (username.length === 0 || email.length === 0 || password.length === 0) {
-        res.send({ status: 'error', errorMsg: 'Missing arguments!' })
+        res.send({ status: "error", errorMsg: "Missing arguments!" });
         return;
     }
 
     UserController.createUser(username, email, password)
         .then((verifyKey) => {
             let mailOptions = {
-                from: 'warmup2@cse356.compas.cs.stonybrook.edu',
+                from: "warmup2@cse356.compas.cs.stonybrook.edu",
                 to: email,
-                subject: 'Welcome to Warm Up Project 2, please verify your account.',
-                text: 'Thank you for signing up for warm up project 2. Please click the link below to verify your account and sign in.\n' + 'http://green.cse356.compas.cs.stonybrook.edu/verify?email=' + emailURLEncode + '&key=' + verifyKey
+                subject:
+                    "Welcome to Warm Up Project 2, please verify your account.",
+                text:
+                    "Thank you for signing up for warm up project 2. Please click the link below to verify your account and sign in.\n" +
+                    "http://green.cse356.compas.cs.stonybrook.edu/verify?email=" +
+                    emailURLEncode +
+                    "&key=" +
+                    verifyKey,
             };
-            
+
             mailTransport.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                res.send({ status: "error", errorMsg: error });
-            } else {
-                res.send({ status: "success" });
-                res.redirect("/?success='Successfully signed up, please check your email to verify your account.'");
-            }
+                if (error) {
+                    res.send({ status: "error", errorMsg: error });
+                } else {
+                    res.send({ status: "success" });
+                    res.redirect(
+                        "/?success='Successfully signed up, please check your email to verify your account.'"
+                    );
+                }
             });
         })
         .catch((error) => {
@@ -130,19 +146,21 @@ app.post("/adduser", (req, res) => {
 });
 
 app.get("/verify", (req, res) => {
-    if (req.query.email !== undefined && req.query.key !== undefined){
+    if (req.query.email !== undefined && req.query.key !== undefined) {
         const email = req.query.email;
-        const key = req.query.key; 
+        const key = req.query.key;
         console.log(key);
-        UserController.verifyUser(email, key).then((success) => {
-            res.send({ status: 'success' });
-        }).catch((error) => {
-            res.send({ status: 'error', errorMsg: error })
-        })
+        UserController.verifyUser(email, key)
+            .then((success) => {
+                res.send({ status: "success" });
+            })
+            .catch((error) => {
+                res.send({ status: "error", errorMsg: error });
+            });
     } else {
-        res.send({status: 'error', errorMsg: 'Missing email or key'});
+        res.send({ status: "error", errorMsg: "Missing email or key" });
     }
-})
+});
 
 app.post("/login", (req, res) => {
     const username = req.body.username;
@@ -154,9 +172,9 @@ app.post("/login", (req, res) => {
             res.sendStatus(200);
         })
         .catch((error) => {
-            res.status(401).send({errorMsg: error.message});
-        })
-})
+            res.status(401).send({ errorMsg: error.message });
+        });
+});
 
 app.get("/checkLogin", (req, res) => {
     if (req.session.loggedIn) {
@@ -164,17 +182,17 @@ app.get("/checkLogin", (req, res) => {
     } else {
         res.sendStatus(401);
     }
-})
+});
 
 app.post("/logout", (req, res) => {
     req.session.destroy((err) => {
         if (err) {
-            res.status(500).send({errorMsg: err.message});
+            res.status(500).send({ errorMsg: err.message });
         }
         res.clearCookie("session");
         res.sendStatus(200);
-    })
-})
+    });
+});
 
 app.get("/tiles/l:layer/:v/:h.jpg", (req, res) => {
     const { layer, v, h } = req.params;
