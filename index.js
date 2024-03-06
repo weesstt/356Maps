@@ -105,7 +105,7 @@ function logout(event) {
         .then((res) => {
             if (res.ok) {
                 formDiv.style.display = "flex";
-                wp2Div.style.display = "none";
+                wp2Div.remove();
             } else {
                 console.error("error");
             }
