@@ -71,16 +71,16 @@ function loginFormSubmit(event) {
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(formData)
     }).then((res) => {
-        res.json().then((data) => {
-            if (!res.ok) {
+        if (!res.ok) {
+            res.json().then((data) => {
                 errorMsgElement.innerHTML = data.errorMsg;
                 wp2Div.style.display = "none";
-            } else {
-                // hide login form, show wp2 div
-                wp2Div.style.display = "block";
-                formDiv.style.display = "none";
-            }
-        })
+            })
+        } else {
+            // hide login form, show wp2 div
+            wp2Div.style.display = "block";
+            formDiv.style.display = "none";
+        }
     }).catch((err) => {
         errorMsgElement.innerHTML = err;
     })
