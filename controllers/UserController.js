@@ -81,6 +81,9 @@ async function checkLogin(username, password) {
             throw new Error("Invalid credentials")
         }
 
+        if (!user.verified) {
+            throw new Error("Not verified, please verify your account first.")
+        }
         return("Logged in successfully")
     } catch (error) {
         throw error;
