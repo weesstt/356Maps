@@ -1,11 +1,3 @@
-const map = L.map("map").setView([51.505, -0.09], 13);
-const prevLayer = L.tileLayer(
-    "http://194.113.74.197/tiles/l{z}/{x}/{y}.jpg?style=color",
-    {
-        maxZoom: 8,
-    }
-).addTo(map);
-
 window.onload = function () {
     const successMsgElement = document.getElementById("successText");
     const errorMsgElement = document.getElementById("errorText");
@@ -21,17 +13,6 @@ window.onload = function () {
     }
     checkLoginStatus();
 };
-
-function switchStyle(style) {
-    prevLayer.remove();
-    const layer = L.tileLayer(
-        `http://194.113.74.197/tiles/l{z}/{x}/{y}.jpg?style=${style}`,
-        {
-            maxZoom: 8,
-        }
-    ).addTo(map);
-    prevLayer = layer;
-}
 
 function registerFormSubmit(event) {
     event.preventDefault();
