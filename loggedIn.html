@@ -18,7 +18,7 @@
             },
         });
 
-        L.tileLayer.ImageBW = L.TileLayer.extend({
+        L.TileLayer.ImageBW = L.TileLayer.extend({
             getTileUrl: function (coords) {
                 console.log(coords);
                 return `http://194.113.74.197/tiles/l${coords.z}/${coords.x}/${coords.y}.jpg?style=bw`;
