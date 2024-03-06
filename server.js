@@ -110,7 +110,7 @@ app.post("/adduser", (req, res) => {
     const password = req.body.password;
 
     if (username.length === 0 || email.length === 0 || password.length === 0) {
-        res.send({ status: "error", errorMsg: "Missing arguments!" });
+        res.send({ status: "ERROR", errorMsg: "Missing arguments!" });
         return;
     }
 
@@ -131,17 +131,14 @@ app.post("/adduser", (req, res) => {
 
             mailTransport.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    res.send({ status: "error", errorMsg: error });
+                    res.send({ status: "ERROR", errorMsg: error });
                 } else {
                     res.send({ status: "success" });
-                    res.redirect(
-                        "/?success='Successfully signed up, please check your email to verify your account.'"
-                    );
                 }
             });
         })
         .catch((error) => {
-            res.send({ status: "error", errorMsg: error });
+            res.send({ status: "ERROR", errorMsg: error });
         });
 });
 
@@ -155,10 +152,10 @@ app.get("/verify", (req, res) => {
                 res.send({ status: "success" });
             })
             .catch((error) => {
-                res.send({ status: "error", errorMsg: error });
+                res.send({ status: "ERROR", errorMsg: error });
             });
     } else {
-        res.send({ status: "error", errorMsg: "Missing email or key" });
+        res.send({ status: "ERROR", errorMsg: "Missing email or key" });
     }
 });
 
@@ -172,7 +169,7 @@ app.post("/login", (req, res) => {
             res.sendStatus(200);
         })
         .catch((error) => {
-            res.status(401).send({ errorMsg: error.message });
+            res.send({ status: "ERROR", errorMsg: error.message });
         });
 });
 
@@ -187,7 +184,7 @@ app.get("/checkLogin", (req, res) => {
 app.post("/logout", (req, res) => {
     req.session.destroy((err) => {
         if (err) {
-            res.status(500).send({ errorMsg: err.message });
+            res.send({ status: "ERROR", errorMsg: err.message });
         }
         res.clearCookie("session");
         res.sendStatus(200);

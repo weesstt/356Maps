@@ -40,7 +40,7 @@ function registerFormSubmit(event){
         body: JSON.stringify(formData)
     }).then((response) => {
         response.json().then((data) => {
-            if (!response.ok) {
+            if (data.status.toLowerCase() === "error") {
                 errorMsgElement.innerHTML = data.errorMsg;
             }else{
                 successMsgElement.innerHTML = "User successfully registered, please check your email to verify your account."
