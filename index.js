@@ -105,3 +105,22 @@ function logout(event) {
         console.error(err);
     })
 }
+
+function checkLoginStatus() {
+    fetch("/login", {method: "POST"})
+        .then((res) => {
+            const formDiv = document.getElementsByClassName("formDiv")[0];
+            const wp2Div = document.getElementById("wp2");
+            if (!res.ok) {
+                res.json().then(() => {
+                    wp2Div.style.display = "none";
+                })
+            } else {
+                // hide login form, show wp2 div
+                wp2Div.style.display = "block";
+                formDiv.style.display = "none";
+            }
+        }).catch((err) => {
+            console.error(err)
+        })
+}

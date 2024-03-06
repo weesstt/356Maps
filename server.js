@@ -145,6 +145,10 @@ app.get("/verify", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
+    if (req.session.loggedIn) {
+        res.sendStatus(200);
+    }
+
     const username = req.body.username;
     const password = req.body.password;
 
