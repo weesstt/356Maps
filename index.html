@@ -77,7 +77,7 @@
                     placeholder="Enter Password"
                     required
                 />
-                <button type="submit" class="submitButton" id="loginButton">
+                <button type="submit" class="submitButton" id="loginButton" onclick="loginFormSubmit(event)">
                     Login
                 </button>
             </form>
@@ -88,7 +88,8 @@
             </button>
         </div>
         <!-- Show this if the user is logged in -->
-        <div id="wp2">
+        <div id="wp2" style="display: none;">
+            <button class="submitButton" id="logoutButton" onclick="logout(event)">Logout</button>
             <form>
                 <input type="radio" name="color" value="color" /><label
                     >color</label

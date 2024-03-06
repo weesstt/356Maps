@@ -49,3 +49,59 @@ function registerFormSubmit(event){
         errorMsgElement.innerHTML = error;
     })
 }
+
+function loginFormSubmit(event) {
+    event.preventDefault();
+
+    const form = document.getElementById("loginForm");
+    const username = form.elements["username"].value;
+    const password = form.elements["password"].value;
+
+    const formDiv = document.getElementsByClassName("formDiv")[0];
+    const errorMsgElement = document.getElementById("errorText");
+    const wp2Div = document.getElementById("wp2");
+
+    const formData = {
+        username: username,
+        password: password
+    }
+
+    fetch("/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(formData)
+    }).then((res) => {
+        res.json().then((data) => {
+            if (!res.ok) {
+                errorMsgElement.innerHTML = data.errorMsg;
+                wp2Div.style.display = "none";
+            } else {
+                // hide login form, show wp2 div
+                wp2Div.style.display = "block";
+                formDiv.style.display = "none";
+            }
+        })
+    }).catch((err) => {
+        errorMsgElement.innerHTML = err;
+    })
+}
+
+function logout(event) {
+    event.preventDefault();
+
+    const formDiv = document.getElementsByClassName("formDiv")[0];
+    const wp2Div = document.getElementById("wp2");
+
+    fetch("/logout", {
+        method: "POST"
+    }).then((res) => {
+        if (res.ok) {
+            formDiv.style.display = "flex";
+            wp2Div.style.display = "none";
+        } else {
+            console.error("error");
+        }
+    }).catch((err) => {
+        console.error(err);
+    })
+}

@@ -69,5 +69,24 @@ async function verifyUser(email, providedKey){
     });
 }
 
+async function checkLogin(username, password) {
+    try {
+        const user = await UserModel.findOne({username: username});
+        if (!user) {
+            throw new Error("Invalid credentials");
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            throw new Error("Invalid credentials")
+        }
+
+        return("Logged in successfully")
+    } catch (error) {
+        throw error;
+    }
+}
+
 exports.createUser = createUser;
 exports.verifyUser = verifyUser;
+exports.checkLogin = checkLogin;

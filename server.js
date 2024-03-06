@@ -68,7 +68,7 @@ app.use(
         name: "session",
         cookie: {},
         store: MongoStore.create({
-            mongoUrl: "mongodb://127.0.0.1:27017/fake_so",
+            mongoUrl: mongoDB,
         }),
     })
 );
@@ -142,6 +142,30 @@ app.get("/verify", (req, res) => {
     } else {
         res.send({status: 'error', errorMsg: 'Missing email or key'});
     }
+})
+
+app.post("/login", (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+
+    UserController.checkLogin(username, password)
+        .then(() => {
+            req.session.loggedIn = true;
+            res.send({status: "success"})
+        })
+        .catch((error) => {
+            res.send({status: "error", errorMsg: error})
+        })
+})
+
+app.post("/logout", (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            res.send({status: "error", errorMsg: err});
+        }
+        res.clearCookie("session");
+        res.send({status: "success"})
+    })
 })
 
 app.get("/tiles/l:layer/:v/:h.jpg", (req, res) => {
