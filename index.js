@@ -81,6 +81,7 @@ function loginFormSubmit(event) {
             // hide login form, show wp2 div
             wp2Div.style.display = "block";
             formDiv.style.display = "none";
+            errorMsgElement.innerHTML = "";
         }
     }).catch((err) => {
         errorMsgElement.innerHTML = err;
