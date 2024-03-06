@@ -151,20 +151,20 @@ app.post("/login", (req, res) => {
     UserController.checkLogin(username, password)
         .then(() => {
             req.session.loggedIn = true;
-            res.send({status: "success"})
+            res.sendStatus(200);
         })
         .catch((error) => {
-            res.send({status: "error", errorMsg: error})
+            res.status(401).send({errorMsg: error});
         })
 })
 
 app.post("/logout", (req, res) => {
     req.session.destroy((err) => {
         if (err) {
-            res.send({status: "error", errorMsg: err});
+            res.status(500).send({errorMsg: err});
         }
         res.clearCookie("session");
-        res.send({status: "success"})
+        res.sendStatus(200);
     })
 })
 
