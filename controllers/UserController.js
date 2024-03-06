@@ -43,7 +43,7 @@ async function verifyUser(email, providedKey){
     let emailResults = await UserModel.find({email: email});
     return new Promise((resolve, reject) => {
         if(emailResults.length === 0){
-            reject("No user with that email exists, please register.");
+            reject("No user with email " + email + " exists, please register.");
             return;
         }
 

@@ -98,10 +98,10 @@ app.get("/index.js", (req, res) => {
 app.post("/adduser", (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
+    const emailURLEncode = req.body.email.replace("+", "%2B");
     const password = req.body.password;
 
     if (username.length === 0 || email.length === 0 || password.length === 0) {
-        //redirect to home with error message
         res.send({ status: 'error', errorMsg: 'Missing arguments!' })
         return;
     }
@@ -110,9 +110,9 @@ app.post("/adduser", (req, res) => {
         .then((verifyKey) => {
             let mailOptions = {
                 from: 'warmup2@cse356.compas.cs.stonybrook.edu',
-                to: 'austinwwest@gmail.com',
+                to: email,
                 subject: 'Welcome to Warm Up Project 2, please verify your account.',
-                text: 'Thank you for signing up for warm up project 2. Please click the link below to verify your account and sign in.\n' + 'http://green.cse356.compas.cs.stonybrook.edu/verify?email=' + email + '&key=' + verifyKey
+                text: 'Thank you for signing up for warm up project 2. Please click the link below to verify your account and sign in.\n' + 'http://green.cse356.compas.cs.stonybrook.edu/verify?email=' + emailURLEncode + '&key=' + verifyKey
             };
             
             mailTransport.sendMail(mailOptions, (error, info) => {
