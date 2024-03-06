@@ -11,25 +11,36 @@
         crossorigin=""
     ></script>
     <script>
+        L.TileLayer.ImageColor = L.TileLayer.extend({
+            getTileUrl: function (coords) {
+                console.log(coords);
+                return `http://194.113.74.197/tiles/l${coords.z}/${coords.x}/${coords.y}.jpg?style=color`;
+            },
+        });
+
+        L.tileLayer.ImageBW = L.TileLayer.extend({
+            getTileUrl: function (coords) {
+                console.log(coords);
+                return `http://194.113.74.197/tiles/l${coords.z}/${coords.x}/${coords.y}.jpg?style=bw`;
+            },
+        });
+        const imageColor = new L.TileLayer.ImageColor();
+        const imageBW = new L.TileLayer.ImageBW();
+
+        let map;
         window.onload = () => {
-            const map = L.map("map").setView([51.505, -0.09], 13);
-            const prevLayer = L.tileLayer(
-                "http://194.113.74.197/tiles/l{z}/{x}/{y}.jpg?style=color",
-                {
-                    maxZoom: 8,
-                }
-            ).addTo(map);
+            map = L.map("map");
+            new imageColor.addTo(map);
         };
 
         function switchStyle(style) {
-            prevLayer.remove();
-            const layer = L.tileLayer(
-                `http://194.113.74.197/tiles/l{z}/{x}/{y}.jpg?style=${style}`,
-                {
-                    maxZoom: 8,
-                }
-            ).addTo(map);
-            prevLayer = layer;
+            if (style == "color") {
+                map.removeLayer(imageBW);
+                imageColor.addTo(map);
+            } else {
+                map.removeLayer(imageColor);
+                imageBW.addTo(map);
+            }
         }
 
         function switchForm() {
@@ -134,6 +145,7 @@
                 type="radio"
                 name="color"
                 value="color"
+                checked
                 onclick="switchStyle('color')"
             /><label>color</label>
             <input
