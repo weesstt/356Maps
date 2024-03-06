@@ -29,8 +29,8 @@
 
         let map;
         window.addEventListener("load", () => {
-            map = L.map("wp2").setView([0, 0], 1);
-            new imageColor.addTo(map);
+            map = L.map("map").setView([0, 0], 1);
+            imageColor.addTo(map);
         });
 
         function switchStyle(style) {
@@ -156,6 +156,6 @@
             /><label>bw</label>
         </form>
 
-        <canvas id="wp2"></canvas>
+        <canvas id="map"></canvas>
     </body>
 </html>
