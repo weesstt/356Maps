@@ -154,14 +154,14 @@ app.post("/login", (req, res) => {
             res.sendStatus(200);
         })
         .catch((error) => {
-            res.status(401).send({errorMsg: error});
+            res.status(401).send({errorMsg: error.message});
         })
 })
 
 app.post("/logout", (req, res) => {
     req.session.destroy((err) => {
         if (err) {
-            res.status(500).send({errorMsg: err});
+            res.status(500).send({errorMsg: err.message});
         }
         res.clearCookie("session");
         res.sendStatus(200);
