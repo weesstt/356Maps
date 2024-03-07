@@ -196,7 +196,7 @@ app.post("/logout", (req, res) => {
 
 app.get("/tiles/l:layer/:v/:h.jpg", (req, res) => {
     if (!req.session.loggedIn) {
-        res.send("Not Logged In");
+        res.send({ status: "ERROR", errorMsg: "Not logged in" });
         return;
     }
 

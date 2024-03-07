@@ -79,13 +79,14 @@ function loginFormSubmit(event) {
             if (!res.ok) {
                 res.json().then((data) => {
                     errorMsgElement.innerHTML = data.errorMsg;
-                    wp2Div.style.display = "none";
+                    // wp2Div.style.display = "none";
                 });
             } else {
                 // hide login form, show wp2 div
-                wp2Div.style.display = "block";
-                formDiv.style.display = "none";
-                errorMsgElement.innerHTML = "";
+                // wp2Div.style.display = "block";
+                // formDiv.style.display = "none";
+                // errorMsgElement.innerHTML = "";
+                window.location.href = "/"
             }
         })
         .catch((err) => {
@@ -105,9 +106,10 @@ function logout(event) {
     })
         .then((res) => {
             if (res.ok) {
-                formDiv.style.display = "flex";
-                radioForm.remove();
-                wp2Div.remove();
+                // formDiv.style.display = "flex";
+                // radioForm.remove();
+                // wp2Div.remove();
+                window.location.href = "/";
             } else {
                 console.error("error");
             }
