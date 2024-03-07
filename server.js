@@ -190,8 +190,7 @@ app.post("/logout", (req, res) => {
         }
         res.clearCookie("session");
         // res.sendStatus(200);
-        res.redirect("/");
-        // res.send({ status: "OK" });
+        res.send({ status: "OK" });
     });
 });
 
@@ -199,6 +198,10 @@ app.get("/tiles/l:layer/:v/:h.jpg", (req, res) => {
     const { layer, v, h } = req.params;
     const style = req.query.style;
     const path = __dirname + `/tiles/l${layer}/${v}/${h}.jpg`;
+
+    if (!req.session.loggedIn) {
+        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    }
 
     if (style === "color") res.sendFile(path);
     else if (style === "bw") {
