@@ -195,6 +195,11 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/tiles/l:layer/:v/:h.jpg", (req, res) => {
+    if (!req.session.loggedIn) {
+        res.send("Not Logged In");
+        return;
+    }
+
     const { layer, v, h } = req.params;
     const style = req.query.style;
     const path = __dirname + `/tiles/l${layer}/${v}/${h}.jpg`;
