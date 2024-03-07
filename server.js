@@ -199,10 +199,6 @@ app.get("/tiles/l:layer/:v/:h.jpg", (req, res) => {
     const style = req.query.style;
     const path = __dirname + `/tiles/l${layer}/${v}/${h}.jpg`;
 
-    if (!req.session.loggedIn) {
-        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-    }
-
     if (style === "color") res.sendFile(path);
     else if (style === "bw") {
         sharp(path)
