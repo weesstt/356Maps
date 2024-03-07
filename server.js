@@ -199,8 +199,8 @@ app.get("/tiles/l:layer/:v/:h.jpg", (req, res) => {
     const style = req.query.style;
     const path = __dirname + `/tiles/l${layer}/${v}/${h}.jpg`;
 
-    if (style === "color" && req.session.loggedIn) res.sendFile(path);
-    else if (style === "bw" && req.session.loggedIn) {
+    if (style === "color") res.sendFile(path);
+    else if (style === "bw") {
         sharp(path)
             .grayscale()
             .toBuffer((err, data, info) => {
