@@ -1,7 +1,7 @@
 const fs = require("fs");
 const express = require("express");
 const sharp = require("sharp");
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
 const app = express();
 const cors = require("cors");
@@ -9,13 +9,12 @@ const cors = require("cors");
 const server = app.listen(80, () => {});
 
 const pool = new Pool({
-    user: 'root',
-    host: 'localhost',
-    database: 'postgres',
-    password: 'password',
+    user: "root",
+    host: "localhost",
+    database: "postgres",
+    password: "password",
     port: 5432, // Default PostgreSQL port
-  });
-  
+});
 
 process.on("SIGINT", () => {
     server.close(() => {
@@ -58,31 +57,84 @@ app.get("/index.js", (req, res) => {
     res.sendFile(__dirname + "/index.js");
 });
 
-app.post("/api/search", (req, res) => {
-    const bbox = req.body.bbox
-    const onlyInBox = req.body.onlyInBox
+app.get("/tiles/l:layer/:v/:h.png", async (req, res) => {
+    const { layer, v, h } = req.params;
+    const result = await fetch(
+        `http://209.94.57.1/tiles/${layer}/${v}/${h}.png`
+    );
+    const buffer = await result.buffer();
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Content-Length", buffer.length);
+    res.setHeader("Cache-Control", "public, max-age=31536000");
+    res.send(buffer);
+});
 
-    const searchSet = {}
-    const searchTerm = req.body.searchTerm
-    for(const word of searchTerm.toLowerCase().split(" ")){
+app.post("/api/search", (req, res) => {
+    const bbox = req.body.bbox;
+    const onlyInBox = req.body.onlyInBox;
+
+    const searchSet = {};
+    const searchTerm = req.body.searchTerm;
+    for (const word of searchTerm.toLowerCase().split(" ")) {
         searchSet[word] = true;
     }
 
-    var pointQuery = "SELECT p.*, ST_X(ST_Transform(p.way, 4326)) AS longitude, ST_Y(ST_Transform(p.way, 4326)) AS latitude FROM planet_osm_point p " +
+    var pointQuery =
+        "SELECT p.*, ST_X(ST_Transform(p.way, 4326)) AS longitude, ST_Y(ST_Transform(p.way, 4326)) AS latitude FROM planet_osm_point p " +
         "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
-        "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" + bbox.minLon +", " + bbox.minLat + ", " + bbox.maxLon + ", " + bbox.maxLat + ", 4326), 4326), 3857));";
+        "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
+        bbox.minLon +
+        ", " +
+        bbox.minLat +
+        ", " +
+        bbox.maxLon +
+        ", " +
+        bbox.maxLat +
+        ", 4326), 4326), 3857));";
 
-    var polygonQuery = "SELECT p.*, ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS longitude, ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS latitude FROM planet_osm_polygon p " +
+    var polygonQuery =
+        "SELECT p.*, ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS longitude, ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS latitude FROM planet_osm_polygon p " +
         "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
-        "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" + bbox.minLon + ", " + bbox.minLat + ", " + bbox.maxLon + ", " + bbox.maxLat + ", 4326), 4326), 3857));";
+        "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
+        bbox.minLon +
+        ", " +
+        bbox.minLat +
+        ", " +
+        bbox.maxLon +
+        ", " +
+        bbox.maxLat +
+        ", 4326), 4326), 3857));";
 
-    if(req.body.onlyInBox == true){ //only get center coordinates of visible portion inside bbox
-        let intersection = "ST_Centroid(ST_Intersection(p.way, ST_MakeEnvelope(" + bbox.minLon +", " + bbox.minLat + ", " + bbox.maxLon + ", " + bbox.maxLat + ", 3857)))"
-        
-        polygonQuery = "SELECT p.*, ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS longitude, ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS latitude, " +
-            "ST_X(" + intersection + ") AS longitude, ST_Y(" + intersection + ") AS latitude FROM planet_osm_polygon p "
-            "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
-            "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" + bbox.minLon + ", " + bbox.minLat + ", " + bbox.maxLon + ", " + bbox.maxLat + ", 4326), 4326), 3857));";
+    if (req.body.onlyInBox == true) {
+        //only get center coordinates of visible portion inside bbox
+        let intersection =
+            "ST_Centroid(ST_Intersection(p.way, ST_MakeEnvelope(" +
+            bbox.minLon +
+            ", " +
+            bbox.minLat +
+            ", " +
+            bbox.maxLon +
+            ", " +
+            bbox.maxLat +
+            ", 3857)))";
+
+        polygonQuery =
+            "SELECT p.*, ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS longitude, ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS latitude, " +
+            "ST_X(" +
+            intersection +
+            ") AS longitude, ST_Y(" +
+            intersection +
+            ") AS latitude FROM planet_osm_polygon p ";
+        "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
+            "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
+            bbox.minLon +
+            ", " +
+            bbox.minLat +
+            ", " +
+            bbox.maxLon +
+            ", " +
+            bbox.maxLat +
+            ", 4326), 4326), 3857));";
     }
 
     // let pointQuery = "SELECT p.*, ST_AsText(ST_Transform(ST_Centroid(p.way), 4326)) AS center_coordinates " +
@@ -105,49 +157,60 @@ app.post("/api/search", (req, res) => {
     //     "WHERE boundary IS NOT NULL AND amenity IS NOT NULL AND name IS NOT NULL;"
     // }
 
-
     // Execute the query
-    pool.query(pointQuery).then((pointResults) => {
-        pool.query(polygonQuery).then((polygonResults) => {
-            const results = []
-            for(const result of (pointResults.rows.concat(polygonResults.rows))){
-                var added = false;
-                for(const word of result.name.toLowerCase().split(" ")){
-                    if(word in searchSet){
-                        results.push(result)
-                        added = true
-                        break;
-                    }
-                }   
-
-                if(added) continue;
-
-                for(const word of result.amenity.toLowerCase().split(" ")){
-                    if(word in searchSet){
-                        results.push(result)
-                        added = true;
-                        break;
-                    }
-                }
-
-                if(added) continue;
-
-                if(result.brand != null){
-                    for(const word of result.brand.toLowerCase().split(" ")){
-                        if(word in searchSet){
-                            results.push(result)
-                            break;
+    pool.query(pointQuery)
+        .then((pointResults) => {
+            pool.query(polygonQuery)
+                .then((polygonResults) => {
+                    const results = [];
+                    for (const result of pointResults.rows.concat(
+                        polygonResults.rows
+                    )) {
+                        var added = false;
+                        for (const word of result.name
+                            .toLowerCase()
+                            .split(" ")) {
+                            if (word in searchSet) {
+                                results.push(result);
+                                added = true;
+                                break;
+                            }
                         }
-                    }  
-                } 
-            }
-            res.send(results)
-        }).catch((error) => {
+
+                        if (added) continue;
+
+                        for (const word of result.amenity
+                            .toLowerCase()
+                            .split(" ")) {
+                            if (word in searchSet) {
+                                results.push(result);
+                                added = true;
+                                break;
+                            }
+                        }
+
+                        if (added) continue;
+
+                        if (result.brand != null) {
+                            for (const word of result.brand
+                                .toLowerCase()
+                                .split(" ")) {
+                                if (word in searchSet) {
+                                    results.push(result);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    res.send(results);
+                })
+                .catch((error) => {
+                    res.status(500).send(error);
+                    console.log(error);
+                });
+        })
+        .catch((error) => {
             res.status(500).send(error);
             console.log(error);
-        })
-    }).catch((error) => {
-        res.status(500).send(error);
-        console.log(error);
-    })
-})
+        });
+});
