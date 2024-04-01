@@ -57,10 +57,10 @@ app.get("/index.js", (req, res) => {
     res.sendFile(__dirname + "/index.js");
 });
 
-app.get("/tiles/l:layer/:v/:h.png", async (req, res) => {
+app.get("/tiles/:layer/:v/:h.png", async (req, res) => {
     const { layer, v, h } = req.params;
     const result = await fetch(
-        `http://209.94.57.1/tiles/${layer}/${v}/${h}.png`
+        `http://209.94.57.1/tile/${layer}/${v}/${h}.png`
     );
     const buffer = await result.buffer();
     res.setHeader("Content-Type", "image/png");
