@@ -1,6 +1,7 @@
 const fs = require("fs");
 const express = require("express");
 const sharp = require("sharp");
+const fetch = require("node-fetch");
 const { Pool } = require("pg");
 
 const app = express();
@@ -57,16 +58,11 @@ app.get("/index.js", (req, res) => {
     res.sendFile(__dirname + "/index.js");
 });
 
-app.get("/tiles/:layer/:v/:h.png", async (req, res) => {
-    const { layer, v, h } = req.params;
-    const result = await fetch(
-        `http://209.94.57.1/tile/${layer}/${v}/${h}.png`
-    );
-    const buffer = await result.buffer();
+app.get("/tiles/:l/:v/:h.png", async (req, res) => {
+    const { l, v, h } = req.params;
+    const result = await fetch(`http://209.94.57.1/tile/${l}/${v}/${h}.png`);
     res.setHeader("Content-Type", "image/png");
-    res.setHeader("Content-Length", buffer.length);
-    res.setHeader("Cache-Control", "public, max-age=31536000");
-    res.send(buffer);
+    result.body.pipe(res);
 });
 
 app.post("/api/search", (req, res) => {
