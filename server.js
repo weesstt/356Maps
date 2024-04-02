@@ -77,7 +77,7 @@ app.post("/api/search", (req, res) => {
 
     var pointQuery =
         "SELECT p.*, ST_X(ST_Transform(p.way, 4326)) AS longitude, ST_Y(ST_Transform(p.way, 4326)) AS latitude FROM planet_osm_point p " +
-        "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
+        "WHERE amenity IS NOT NULL AND name IS NOT NULL "
         "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
         bbox.minLon +
         ", " +
@@ -90,7 +90,7 @@ app.post("/api/search", (req, res) => {
 
     var polygonQuery =
         "SELECT p.*, ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS longitude, ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS latitude FROM planet_osm_polygon p " +
-        "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
+        "WHERE amenity IS NOT NULL AND name IS NOT NULL "
         "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
         bbox.minLon +
         ", " +
@@ -100,6 +100,54 @@ app.post("/api/search", (req, res) => {
         ", " +
         bbox.maxLat +
         ", 4326), 4326), 3857));";
+
+    var testCombinedQuery = `
+        SELECT
+            name,
+            "addr:housenumber",
+            tags -> 'addr:street',
+            tags -> 'addr:city',
+            tags -> 'addr:state',
+            tags -> 'addr:postcode',
+            ST_X(ST_Transform(way, 4326)) AS longitude, 
+            ST_Y(ST_Transform(way, 4326)) AS latitude
+        FROM planet_osm_point
+        WHERE name ILIKE $1
+        OR "addr:housenumber" LIKE $1
+        OR tags -> 'addr:street' ILIKE $1
+        OR tags -> 'addr:postcode' LIKE $1
+
+        UNION
+
+        SELECT
+            name,
+            "addr:housenumber",
+            tags -> 'addr:street',
+            tags -> 'addr:city',
+            tags -> 'addr:state',
+            tags -> 'addr:postcode',
+            ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
+            ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
+        FROM planet_osm_polygon
+        WHERE name ILIKE $1
+        OR "addr:housenumber" LIKE $1
+        OR tags -> 'addr:street' ILIKE $1
+        OR tags -> 'addr:postcode' LIKE $1
+
+        UNION
+
+        SELECT
+            name,
+            "addr:housenumber",
+            tags -> 'addr:street',
+            tags -> 'addr:city',
+            tags -> 'addr:state',
+            tags -> 'addr:postcode',
+            ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
+            ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
+        FROM planet_osm_line
+        WHERE name ILIKE $1
+    `
 
     if (req.body.onlyInBox == true) {
         //only get center coordinates of visible portion inside bbox
@@ -154,61 +202,71 @@ app.post("/api/search", (req, res) => {
     // }
 
     // Execute the query
-    pool.query(pointQuery)
-        .then((pointResults) => {
-            pool.query(polygonQuery)
-                .then((polygonResults) => {
-                    const results = [];
-                    for (const result of pointResults.rows.concat(
-                        polygonResults.rows
-                    )) {
-                        var added = false;
-                        for (const word of result.name
-                            .toLowerCase()
-                            .split(" ")) {
-                            if (word in searchSet) {
-                                results.push(result);
-                                added = true;
-                                break;
-                            }
-                        }
-
-                        if (added) continue;
-
-                        for (const word of result.amenity
-                            .toLowerCase()
-                            .split(" ")) {
-                            if (word in searchSet) {
-                                results.push(result);
-                                added = true;
-                                break;
-                            }
-                        }
-
-                        if (added) continue;
-
-                        if (result.brand != null) {
-                            for (const word of result.brand
-                                .toLowerCase()
-                                .split(" ")) {
-                                if (word in searchSet) {
-                                    results.push(result);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    res.send(results);
-                })
-                .catch((error) => {
-                    res.status(500).send(error);
-                    console.log(error);
-                });
+    pool.query(testCombinedQuery)
+        .then((results) => {
+            console.log(results);
+            res.send(results);
         })
         .catch((error) => {
             res.status(500).send(error);
             console.log(error);
-        });
+        })
+
+    // pool.query(pointQuery)
+    //     .then((pointResults) => {
+    //         pool.query(polygonQuery)
+    //             .then((polygonResults) => {
+    //                 const results = [];
+    //                 for (const result of pointResults.rows.concat(
+    //                     polygonResults.rows
+    //                 )) {
+    //                     var added = false;
+    //                     for (const word of result.name
+    //                         .toLowerCase()
+    //                         .split(" ")) {
+    //                         if (word in searchSet) {
+    //                             results.push(result);
+    //                             added = true;
+    //                             break;
+    //                         }
+    //                     }
+
+    //                     if (added) continue;
+
+    //                     for (const word of result.amenity
+    //                         .toLowerCase()
+    //                         .split(" ")) {
+    //                         if (word in searchSet) {
+    //                             results.push(result);
+    //                             added = true;
+    //                             break;
+    //                         }
+    //                     }
+
+    //                     if (added) continue;
+
+    //                     if (result.brand != null) {
+    //                         for (const word of result.brand
+    //                             .toLowerCase()
+    //                             .split(" ")) {
+    //                             if (word in searchSet) {
+    //                                 results.push(result);
+    //                                 break;
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //                 res.send(results);
+    //             })
+    //             .catch((error) => {
+    //                 res.status(500).send(error);
+    //                 console.log(error);
+    //             });
+    //     })
+    //     .catch((error) => {
+    //         res.status(500).send(error);
+    //         console.log(error);
+    //     });
 });
 
 app.post("/convert", (req, res) => {
