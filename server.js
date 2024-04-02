@@ -212,14 +212,19 @@ app.post("/api/search", (req, res) => {
                 let outObj = {};
                 outObj["lat"] = row.latitude;
                 outObj["lon"] = row.longitude;
+                outObj["name"] = "";
                 if (row.name) {
                     outObj["name"] = row.name;
                 } else {
-                    outObj["name"] = "some address";
+                    outObj["name"] += row.housenumber ? row.housenumber : ""
+                    outObj["name"] += row.street ? row.street + ", " : ""
+                    outObj["name"] += row.city ? row.city + ", " : ""
+                    outObj["name"] += row.state ? row.state + " ": ""
+                    outObj["name"] += row.zip ? row.zip : ""
                 }
                 out.push(outObj);
             }
-            res.send(outObj);
+            res.send(out);
         })
         .catch((error) => {
             res.status(500).send(error);
