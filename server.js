@@ -210,3 +210,19 @@ app.post("/api/search", (req, res) => {
             console.log(error);
         });
 });
+
+app.post("/convert", (req, res) => {
+    const lat = req.body.lat;
+    const long = req.body.long;
+    const zoom = req.body.zoom;
+
+    // Implementing formula for lat/long/zoom to tile numbers
+    const n = Math.pow(2, zoom);
+    const xTile = Math.floor(n * ((long + 180) / 360));
+    const yTile = Math.floor(n * (1 - (Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI)) / 2);
+
+    res.json({
+        "x_tile": xTile,
+        "y_tile": yTile
+    });
+});
