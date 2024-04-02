@@ -122,6 +122,7 @@ app.post("/api/search", (req, res) => {
             OR "addr:housenumber" LIKE $1
             OR tags -> 'addr:street' ILIKE $1
             OR tags -> 'addr:postcode' LIKE $1
+            AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
 
         UNION
 
@@ -144,6 +145,7 @@ app.post("/api/search", (req, res) => {
             OR "addr:housenumber" LIKE $1
             OR tags -> 'addr:street' ILIKE $1
             OR tags -> 'addr:postcode' LIKE $1
+            AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
 
         UNION
 
@@ -161,7 +163,8 @@ app.post("/api/search", (req, res) => {
             ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
             ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
         FROM planet_osm_line
-        WHERE name ILIKE $1;
+        WHERE name ILIKE $1
+        AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857));
     `;
 
     if (onlyInBox) {
@@ -264,8 +267,9 @@ app.post("/api/search", (req, res) => {
                 name ILIKE $1
                 AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857));
         `;
-        queryParams.push(bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat);
+        
     }
+    queryParams.push(bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat);
 
     // let pointQuery = "SELECT p.*, ST_AsText(ST_Transform(ST_Centroid(p.way), 4326)) AS center_coordinates " +
     // "FROM planet_osm_point p " +
@@ -288,10 +292,11 @@ app.post("/api/search", (req, res) => {
     // }
 
     // Execute the query
+    names = new Set()
+
     pool.query(testCombinedQuery, queryParams)
         .then((queryResult) => {
             const resultRows = queryResult.rows;
-
             let out = [];
             for (const row of resultRows) {
                 let outObj = {};
@@ -317,7 +322,10 @@ app.post("/api/search", (req, res) => {
                     "maxLat": row.ymax,
                     "maxLon": row.xmax
                 }
-                out.push(outObj);
+                if(!names.has(outObj["name"])){
+                    out.push(outObj);
+                    names.add(outObj["name"])
+                }
             }
             console.log(out)
             res.send(out);
