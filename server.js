@@ -111,7 +111,11 @@ app.post("/api/search", (req, res) => {
             tags -> 'addr:state' AS state,
             tags -> 'addr:postcode' AS zip,
             ST_X(ST_Transform(way, 4326)) AS longitude, 
-            ST_Y(ST_Transform(way, 4326)) AS latitude
+            ST_Y(ST_Transform(way, 4326)) AS latitude,
+            ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
+            ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
+            ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
+            ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
         FROM planet_osm_point
         WHERE
             name ILIKE $1
@@ -129,7 +133,11 @@ app.post("/api/search", (req, res) => {
             tags -> 'addr:state' AS state,
             tags -> 'addr:postcode' AS zip,
             ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
-            ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
+            ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude,
+            ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
+            ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
+            ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
+            ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
         FROM planet_osm_polygon
         WHERE
             name ILIKE $1
@@ -147,7 +155,11 @@ app.post("/api/search", (req, res) => {
             tags -> 'addr:state' AS state,
             tags -> 'addr:postcode' AS zip,
             ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
-            ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
+            ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude,
+            ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
+            ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
+            ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
+            ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
         FROM planet_osm_line
         WHERE name ILIKE $1;
     `;
@@ -191,8 +203,12 @@ app.post("/api/search", (req, res) => {
                 tags -> 'addr:city' AS city,
                 tags -> 'addr:state' AS state,
                 tags -> 'addr:postcode' AS zip,
-                ST_X(ST_Transform(way, 4326)) AS longitude, 
-                ST_Y(ST_Transform(way, 4326)) AS latitude
+                ST_X(ST_Transform(way, 4326)) AS longitude,
+                ST_Y(ST_Transform(way, 4326)) AS latitude,
+                ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
+                ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
+                ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
+                ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
             FROM planet_osm_point
             WHERE
                 (
@@ -213,7 +229,11 @@ app.post("/api/search", (req, res) => {
                 tags -> 'addr:state' AS state,
                 tags -> 'addr:postcode' AS zip,
                 ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
-                ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
+                ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude,
+                ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
+                ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
+                ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
+                ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
             FROM planet_osm_polygon
             WHERE
                 (
@@ -234,7 +254,11 @@ app.post("/api/search", (req, res) => {
                 tags -> 'addr:state' AS state,
                 tags -> 'addr:postcode' AS zip,
                 ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
-                ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
+                ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude,
+                ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
+                ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
+                ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
+                ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
             FROM planet_osm_line
             WHERE
                 name ILIKE $1
@@ -288,10 +312,10 @@ app.post("/api/search", (req, res) => {
                 }
 
                 outObj["bbox"] = {
-                    "minLat": 1,
-                    "minLon": 2,
-                    "maxLat": 3,
-                    "maxLon": 4
+                    "minLat": row.ymin,
+                    "minLon": row.xmin,
+                    "maxLat": row.ymax,
+                    "maxLon": row.xmax
                 }
                 out.push(outObj);
             }
