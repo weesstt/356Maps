@@ -12,7 +12,7 @@ const server = app.listen(80, () => {});
 const pool = new Pool({
     user: "root",
     host: "localhost",
-    database: "postgres",
+    database: "new_york",
     password: "password",
     port: 5432, // Default PostgreSQL port
 });
@@ -77,7 +77,7 @@ app.post("/api/search", (req, res) => {
 
     var pointQuery =
         "SELECT p.*, ST_X(ST_Transform(p.way, 4326)) AS longitude, ST_Y(ST_Transform(p.way, 4326)) AS latitude FROM planet_osm_point p " +
-        "WHERE amenity IS NOT NULL AND name IS NOT NULL "
+        "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
         "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
         bbox.minLon +
         ", " +
@@ -90,7 +90,7 @@ app.post("/api/search", (req, res) => {
 
     var polygonQuery =
         "SELECT p.*, ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS longitude, ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS latitude FROM planet_osm_polygon p " +
-        "WHERE amenity IS NOT NULL AND name IS NOT NULL "
+        "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
         "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
         bbox.minLon +
         ", " +
@@ -146,7 +146,7 @@ app.post("/api/search", (req, res) => {
             ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
             ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
         FROM planet_osm_line
-        WHERE name ILIKE $1
+        WHERE name ILIKE $1;
     `
 
     if (req.body.onlyInBox == true) {
@@ -202,7 +202,7 @@ app.post("/api/search", (req, res) => {
     // }
 
     // Execute the query
-    pool.query(testCombinedQuery)
+    pool.query(testCombinedQuery, [`%${searchTerm}%`])
         .then((results) => {
             console.log(results);
             res.send(results);
