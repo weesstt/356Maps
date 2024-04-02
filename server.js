@@ -71,6 +71,7 @@ app.post("/api/search", (req, res) => {
 
     const searchSet = {};
     const searchTerm = req.body.searchTerm;
+    let queryParams = [`%${searchTerm}%`];
     for (const word of searchTerm.toLowerCase().split(" ")) {
         searchSet[word] = true;
     }
@@ -112,10 +113,11 @@ app.post("/api/search", (req, res) => {
             ST_X(ST_Transform(way, 4326)) AS longitude, 
             ST_Y(ST_Transform(way, 4326)) AS latitude
         FROM planet_osm_point
-        WHERE name ILIKE $1
-        OR "addr:housenumber" LIKE $1
-        OR tags -> 'addr:street' ILIKE $1
-        OR tags -> 'addr:postcode' LIKE $1
+        WHERE
+            name ILIKE $1
+            OR "addr:housenumber" LIKE $1
+            OR tags -> 'addr:street' ILIKE $1
+            OR tags -> 'addr:postcode' LIKE $1
 
         UNION
 
@@ -129,10 +131,11 @@ app.post("/api/search", (req, res) => {
             ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
             ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
         FROM planet_osm_polygon
-        WHERE name ILIKE $1
-        OR "addr:housenumber" LIKE $1
-        OR tags -> 'addr:street' ILIKE $1
-        OR tags -> 'addr:postcode' LIKE $1
+        WHERE
+            name ILIKE $1
+            OR "addr:housenumber" LIKE $1
+            OR tags -> 'addr:street' ILIKE $1
+            OR tags -> 'addr:postcode' LIKE $1
 
         UNION
 
@@ -147,9 +150,9 @@ app.post("/api/search", (req, res) => {
             ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
         FROM planet_osm_line
         WHERE name ILIKE $1;
-    `
+    `;
 
-    if (req.body.onlyInBox == true) {
+    if (onlyInBox) {
         //only get center coordinates of visible portion inside bbox
         let intersection =
             "ST_Centroid(ST_Intersection(p.way, ST_MakeEnvelope(" +
@@ -179,6 +182,65 @@ app.post("/api/search", (req, res) => {
             ", " +
             bbox.maxLat +
             ", 4326), 4326), 3857));";
+
+        testCombinedQuery = `
+            SELECT
+                name,
+                "addr:housenumber" AS housenumber,
+                tags -> 'addr:street' AS street,
+                tags -> 'addr:city' AS city,
+                tags -> 'addr:state' AS state,
+                tags -> 'addr:postcode' AS zip,
+                ST_X(ST_Transform(way, 4326)) AS longitude, 
+                ST_Y(ST_Transform(way, 4326)) AS latitude
+            FROM planet_osm_point
+            WHERE
+                (
+                    name ILIKE $1
+                    OR "addr:housenumber" LIKE $1
+                    OR tags -> 'addr:street' ILIKE $1
+                    OR tags -> 'addr:postcode' LIKE $1
+                )
+                AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
+
+            UNION
+
+            SELECT
+                name,
+                "addr:housenumber" AS housenumber,
+                tags -> 'addr:street' AS street,
+                tags -> 'addr:city' AS city,
+                tags -> 'addr:state' AS state,
+                tags -> 'addr:postcode' AS zip,
+                ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
+                ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
+            FROM planet_osm_polygon
+            WHERE
+                (
+                    name ILIKE $1
+                    OR "addr:housenumber" LIKE $1
+                    OR tags -> 'addr:street' ILIKE $1
+                    OR tags -> 'addr:postcode' LIKE $1
+                )
+                AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
+
+            UNION
+
+            SELECT
+                name,
+                "addr:housenumber" AS housenumber,
+                tags -> 'addr:street' AS street,
+                tags -> 'addr:city' AS city,
+                tags -> 'addr:state' AS state,
+                tags -> 'addr:postcode' AS zip,
+                ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
+                ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
+            FROM planet_osm_line
+            WHERE
+                name ILIKE $1
+                AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857));
+        `;
+        queryParams.push(bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat);
     }
 
     // let pointQuery = "SELECT p.*, ST_AsText(ST_Transform(ST_Centroid(p.way), 4326)) AS center_coordinates " +
@@ -205,25 +267,35 @@ app.post("/api/search", (req, res) => {
     pool.query(testCombinedQuery, [`%${searchTerm}%`])
         .then((queryResult) => {
             const resultRows = queryResult.rows;
-            console.log(resultRows);
 
             let out = [];
             for (const row of resultRows) {
                 let outObj = {};
-                outObj["lat"] = row.latitude;
-                outObj["lon"] = row.longitude;
+                outObj["coordinates"] = {
+                    "lat": row.latitude,
+                    "lon": row.longitude
+                }
+
                 outObj["name"] = "";
                 if (row.name) {
                     outObj["name"] = row.name;
                 } else {
-                    outObj["name"] += row.housenumber ? row.housenumber : ""
+                    outObj["name"] += row.housenumber ? row.housenumber + " " : ""
                     outObj["name"] += row.street ? row.street + ", " : ""
                     outObj["name"] += row.city ? row.city + ", " : ""
                     outObj["name"] += row.state ? row.state + " ": ""
                     outObj["name"] += row.zip ? row.zip : ""
                 }
+
+                outObj["bbox"] = {
+                    "minLat": 1,
+                    "minLon": 2,
+                    "maxLat": 3,
+                    "maxLon": 4
+                }
                 out.push(outObj);
             }
+            console.log(out)
             res.send(out);
         })
         .catch((error) => {
