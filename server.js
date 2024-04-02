@@ -264,7 +264,7 @@ app.post("/api/search", (req, res) => {
     // }
 
     // Execute the query
-    pool.query(testCombinedQuery, [`%${searchTerm}%`])
+    pool.query(testCombinedQuery, queryParams)
         .then((queryResult) => {
             const resultRows = queryResult.rows;
 
