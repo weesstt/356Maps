@@ -104,11 +104,11 @@ app.post("/api/search", (req, res) => {
     var testCombinedQuery = `
         SELECT
             name,
-            "addr:housenumber",
-            tags -> 'addr:street',
-            tags -> 'addr:city',
-            tags -> 'addr:state',
-            tags -> 'addr:postcode',
+            "addr:housenumber" AS housenumber,
+            tags -> 'addr:street' AS street,
+            tags -> 'addr:city' AS city,
+            tags -> 'addr:state' AS state,
+            tags -> 'addr:postcode' AS zip,
             ST_X(ST_Transform(way, 4326)) AS longitude, 
             ST_Y(ST_Transform(way, 4326)) AS latitude
         FROM planet_osm_point
@@ -121,11 +121,11 @@ app.post("/api/search", (req, res) => {
 
         SELECT
             name,
-            "addr:housenumber",
-            tags -> 'addr:street',
-            tags -> 'addr:city',
-            tags -> 'addr:state',
-            tags -> 'addr:postcode',
+            "addr:housenumber" AS housenumber,
+            tags -> 'addr:street' AS street,
+            tags -> 'addr:city' AS city,
+            tags -> 'addr:state' AS state,
+            tags -> 'addr:postcode' AS zip,
             ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
             ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
         FROM planet_osm_polygon
@@ -138,11 +138,11 @@ app.post("/api/search", (req, res) => {
 
         SELECT
             name,
-            "addr:housenumber",
-            tags -> 'addr:street',
-            tags -> 'addr:city',
-            tags -> 'addr:state',
-            tags -> 'addr:postcode',
+            "addr:housenumber" AS housenumber,
+            tags -> 'addr:street' AS street,
+            tags -> 'addr:city' AS city,
+            tags -> 'addr:state' AS state,
+            tags -> 'addr:postcode' AS zip,
             ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
             ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude
         FROM planet_osm_line
@@ -203,9 +203,23 @@ app.post("/api/search", (req, res) => {
 
     // Execute the query
     pool.query(testCombinedQuery, [`%${searchTerm}%`])
-        .then((results) => {
-            console.log(results);
-            res.send(results);
+        .then((queryResult) => {
+            const resultRows = queryResult.rows;
+            console.log(resultRows);
+
+            let out = [];
+            for (const row of resultRows) {
+                let outObj = {};
+                outObj["lat"] = row.latitude;
+                outObj["lon"] = row.longitude;
+                if (row.name) {
+                    outObj["name"] = row.name;
+                } else {
+                    outObj["name"] = "some address";
+                }
+                out.push(outObj);
+            }
+            res.send(outObj);
         })
         .catch((error) => {
             res.status(500).send(error);
