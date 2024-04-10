@@ -31,7 +31,7 @@ function registerFormSubmit(event) {
         password: password,
     };
 
-    fetch("/adduser", {
+    fetch("/api/adduser", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -70,7 +70,7 @@ function loginFormSubmit(event) {
         password: password,
     };
 
-    fetch("/login", {
+    fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -101,7 +101,7 @@ function logout(event) {
     const radioForm = document.getElementById("radioForm");
     const wp2Div = document.getElementById("wp2");
 
-    fetch("/logout", {
+    fetch("/api/logout", {
         method: "POST",
     })
         .then((res) => {

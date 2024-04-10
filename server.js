@@ -1,11 +1,17 @@
 const fs = require("fs");
 const express = require("express");
 const sharp = require("sharp");
-const fetch = require("node-fetch");
+const mongoose = require("mongoose");
+const MongoStore = require("connect-mongo");
+const bcrypt = require("bcrypt");
+const UserModel = require("./models/users.js");
+const UserController = require("./controllers/UserController.js");
+const nodemailer = require("nodemailer");
 const { Pool } = require("pg");
 
 var sessions = require("express-session");
 const secret = process.argv[2];
+
 
 const app = express();
 const mongoDB = "mongodb://127.0.0.1:27017/warmup2";
@@ -107,13 +113,6 @@ app.get("/index.js", (req, res) => {
     res.sendFile(__dirname + "/index.js");
 });
 
-app.get("/tiles/:l/:v/:h.png", async (req, res) => {
-    const { l, v, h } = req.params;
-    const result = await fetch(`http://209.94.57.1/tile/${l}/${v}/${h}.png`);
-    res.setHeader("Content-Type", "image/png");
-    result.body.pipe(res);
-});
-
 app.get("/log-in.html", (req, res) => {
     res.sendFile(__dirname + "/log-in.html")
 })
@@ -126,7 +125,7 @@ app.get("/log-in.js", (req, res) => {
     res.sendFile(__dirname + "/log-in.js")
 })
 
-app.post("/adduser", (req, res) => {
+app.post("/api/adduser", (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
     const emailURLEncode = req.body.email.replace("+", "%2B");
@@ -165,7 +164,7 @@ app.post("/adduser", (req, res) => {
         });
 });
 
-app.get("/verify", (req, res) => {
+app.get("/api/verify", (req, res) => {
     if (req.query.email !== undefined && req.query.key !== undefined) {
         const email = req.query.email;
         const key = req.query.key;
@@ -182,7 +181,7 @@ app.get("/verify", (req, res) => {
     }
 });
 
-app.post("/login", (req, res) => {
+app.post("/api/login", (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
@@ -197,7 +196,7 @@ app.post("/login", (req, res) => {
         });
 });
 
-app.post("/logout", (req, res) => {
+app.post("/api/logout", (req, res) => {
     req.session.destroy((err) => {
         if (err) {
             res.send({ status: "ERROR", errorMsg: err.message });
@@ -207,7 +206,7 @@ app.post("/logout", (req, res) => {
     });
 });
 
-app.get("/user", (req, res) => {
+app.get("/api/user", (req, res) => {
     if (req.session.loggedIn) {
         res.send({ loggedin: true, username: req.session.user});
     } else {
