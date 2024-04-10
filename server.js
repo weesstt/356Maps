@@ -564,7 +564,7 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
     const centerLon = (parseFloat(topLon) + parseFloat(bottomLon)) / 2;
     const { xTile, yTile } = convertToTile(centerLat, centerLon, 10);
 
-    console.log(xTile, yTile);
+    console.log(TL, BR, xTile, yTile);
 
     const tile = await fetch(
         `http://194.113.75.158/tile/10/${xTile}/${yTile}.png`
