@@ -8,10 +8,10 @@ const UserModel = require("./models/users.js");
 const UserController = require("./controllers/UserController.js");
 const nodemailer = require("nodemailer");
 const { Pool } = require("pg");
+const { Readable } = require("stream");
 
 var sessions = require("express-session");
 const secret = process.argv[2];
-
 
 const app = express();
 const mongoDB = "mongodb://127.0.0.1:27017/warmup2";
@@ -114,16 +114,16 @@ app.get("/index.js", (req, res) => {
 });
 
 app.get("/log-in.html", (req, res) => {
-    res.sendFile(__dirname + "/log-in.html")
-})
+    res.sendFile(__dirname + "/log-in.html");
+});
 
 app.get("/log-in.css", (req, res) => {
-    res.sendFile(__dirname + "/log-in.css")
-})
+    res.sendFile(__dirname + "/log-in.css");
+});
 
 app.get("/log-in.js", (req, res) => {
-    res.sendFile(__dirname + "/log-in.js")
-})
+    res.sendFile(__dirname + "/log-in.js");
+});
 
 app.post("/api/adduser", (req, res) => {
     const username = req.body.username;
@@ -208,7 +208,7 @@ app.post("/api/logout", (req, res) => {
 
 app.get("/api/user", (req, res) => {
     if (req.session.loggedIn) {
-        res.send({ loggedin: true, username: req.session.user});
+        res.send({ loggedin: true, username: req.session.user });
     } else {
         res.send({ status: "ERROR", errorMsg: "Not logged in" });
     }
@@ -416,7 +416,6 @@ app.post("/api/search", (req, res) => {
                 name ILIKE $1
                 AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857));
         `;
-        
     }
     queryParams.push(bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat);
 
@@ -441,7 +440,7 @@ app.post("/api/search", (req, res) => {
     // }
 
     // Execute the query
-    names = new Set()
+    names = new Set();
 
     pool.query(testCombinedQuery, queryParams)
         .then((queryResult) => {
@@ -450,39 +449,41 @@ app.post("/api/search", (req, res) => {
             for (const row of resultRows) {
                 let outObj = {};
                 outObj["coordinates"] = {
-                    "lat": row.latitude,
-                    "lon": row.longitude
-                }
+                    lat: row.latitude,
+                    lon: row.longitude,
+                };
 
                 outObj["name"] = "";
                 if (row.name) {
                     outObj["name"] = row.name;
                 } else {
-                    outObj["name"] += row.housenumber ? row.housenumber + " " : ""
-                    outObj["name"] += row.street ? row.street + ", " : ""
-                    outObj["name"] += row.city ? row.city + ", " : ""
-                    outObj["name"] += row.state ? row.state + " ": ""
-                    outObj["name"] += row.zip ? row.zip : ""
+                    outObj["name"] += row.housenumber
+                        ? row.housenumber + " "
+                        : "";
+                    outObj["name"] += row.street ? row.street + ", " : "";
+                    outObj["name"] += row.city ? row.city + ", " : "";
+                    outObj["name"] += row.state ? row.state + " " : "";
+                    outObj["name"] += row.zip ? row.zip : "";
                 }
 
                 outObj["bbox"] = {
-                    "minLat": row.ymin,
-                    "minLon": row.xmin,
-                    "maxLat": row.ymax,
-                    "maxLon": row.xmax
-                }
-                if(!names.has(outObj["name"])){
+                    minLat: row.ymin,
+                    minLon: row.xmin,
+                    maxLat: row.ymax,
+                    maxLon: row.xmax,
+                };
+                if (!names.has(outObj["name"])) {
                     out.push(outObj);
-                    names.add(outObj["name"])
+                    names.add(outObj["name"]);
                 }
             }
-            console.log(out)
+            console.log(out);
             res.send(out);
         })
         .catch((error) => {
             res.status(500).send(error);
             console.log(error);
-        })
+        });
 
     // pool.query(pointQuery)
     //     .then((pointResults) => {
@@ -542,17 +543,65 @@ app.post("/api/search", (req, res) => {
 });
 
 app.post("/convert", (req, res) => {
-    const lat = req.body.lat;
-    const long = req.body.long;
-    const zoom = req.body.zoom;
+    const { lat, long, zoom } = req.body;
+    const { xTile, yTile } = convertToTile(lat, long, zoom);
+    res.json({ xTile, yTile });
+});
 
-    // Implementing formula for lat/long/zoom to tile numbers
+app.get("/tiles/:l/:v/:h.png", async (req, res) => {
+    const { l, v, h } = req.params;
+    const result = await fetch(`http://209.94.57.1/tile/${l}/${v}/${h}.png`);
+    res.setHeader("Content-Type", "image/png");
+    result.body.pipe(res);
+});
+
+app.get("/turn/:TL/:BR.png", async (req, res) => {
+    const { TL, BR } = req.params;
+    const [topLat, topLon] = TL.split(",");
+    const [bottomLat, bottomLon] = BR.split(",");
+
+    const centerLat = (parseFloat(topLat) + parseFloat(bottomLat)) / 2;
+    const centerLon = (parseFloat(topLon) + parseFloat(bottomLon)) / 2;
+    const { xTile, yTile } = convertToTile(centerLat, centerLon, 10);
+
+    console.log(xTile, yTile);
+
+    const tile = await fetch(
+        `http://194.113.75.158/tile/10/${xTile}/${yTile}.png`
+    );
+    const buffer = await streamToBuffer(tile.body);
+    const image = await sharp(buffer).resize(100, 100).toBuffer();
+    const stream = bufferToStream(image);
+
+    res.setHeader("Content-Type", "image/png");
+    stream.pipe(res);
+});
+
+function convertToTile(lat, long, zoom) {
     const n = Math.pow(2, zoom);
     const xTile = Math.floor(n * ((long + 180) / 360));
-    const yTile = Math.floor(n * (1 - (Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI)) / 2);
+    const yTile = Math.floor(
+        (n *
+            (1 -
+                Math.log(
+                    Math.tan((lat * Math.PI) / 180) +
+                        1 / Math.cos((lat * Math.PI) / 180)
+                ) /
+                    Math.PI)) /
+            2
+    );
 
-    res.json({
-        "x_tile": xTile,
-        "y_tile": yTile
-    });
-});
+    return { xTile, yTile };
+}
+
+async function streamToBuffer(stream) {
+    const chunks = [];
+    for await (const chunk of stream) {
+        chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);
+}
+
+function bufferToStream(buffer) {
+    return Readable.from(buffer);
+}
