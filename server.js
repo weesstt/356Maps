@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 const UserModel = require("./models/users.js");
 const UserController = require("./controllers/UserController.js");
 const nodemailer = require("nodemailer");
+const morgan = require("morgan");
 const { Pool } = require("pg");
 const { Readable } = require("stream");
 const fetch = require('node-fetch');
@@ -89,6 +90,9 @@ app.use((req, res, next) => {
     res.setHeader("X-CSE356", "65bae34dc5cd424f68b46147");
     next();
 });
+
+// request logging middleware
+app.use(morgan("tiny"));
 
 app.get("/", (req, res) => {
     if (!req.session.loggedIn) {
@@ -550,7 +554,7 @@ app.post("/convert", (req, res) => {
 
     const { lat, long, zoom } = req.body;
     const { xTile, yTile } = convertToTile(lat, long, zoom);
-    res.json({ xTile, yTile });
+    res.json({ "x_tile": xTile, "y_tile": yTile });
 });
 
 app.get("/tiles/:l/:v/:h.png", async (req, res) => {
