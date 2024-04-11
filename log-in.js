@@ -31,7 +31,7 @@ function registerFormSubmit(event) {
         password: password,
     };
 
-    fetch("/api/adduser", {
+    fetch("/api/signup", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

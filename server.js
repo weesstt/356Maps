@@ -125,7 +125,7 @@ app.get("/log-in.js", (req, res) => {
     res.sendFile(__dirname + "/log-in.js");
 });
 
-app.post("/api/adduser", (req, res) => {
+app.post("/api/signup", (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
     const emailURLEncode = req.body.email.replace("+", "%2B");
@@ -145,7 +145,7 @@ app.post("/api/adduser", (req, res) => {
                     "Welcome to Warm Up Project 2, please verify your account.",
                 text:
                     "Thank you for signing up for warm up project 2. Please click the link below to verify your account and sign in.\n" +
-                    "http://green.cse356.compas.cs.stonybrook.edu/verify?email=" +
+                    "http://green.cse356.compas.cs.stonybrook.edu/api/verify?email=" +
                     emailURLEncode +
                     "&key=" +
                     verifyKey,
