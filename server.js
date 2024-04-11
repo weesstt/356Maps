@@ -577,6 +577,44 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
     stream.pipe(res);
 });
 
+app.post("/api/route", async (req, res) => {
+    const OSRM_BASE_URL = "194.113.75.9:5000";
+
+    const { source, destination } = req.body;
+    const srcCoords = `${source.lon},${source.lat}`;
+    const destCoords = `${destination.lon},${destination.lat}`;
+
+    const osrmURL = `${OSRM_BASE_URL}/route/v1/driving/${srcCoords};${destCoords}?overview=false&steps=true`;
+
+    try {
+        const osrmRes = await fetch(osrmURL);
+        if (!osrmRes.ok) {
+            throw new Error("Failed to fetch from OSRM");
+        }
+        const osrmData = await osrmRes.json();
+
+        if (osrmData.routes && osrmData.routes.length > 0) {
+            const route = osrmData.routes[0].legs[0];
+
+            const out = route.steps.map(step => {
+                return {
+                    description: `${step.maneuver.type} ${step.name}`,
+                    coordinates: {
+                        lat: step.maneuver.location[1],
+                        lon: step.maneuver.location[0]
+                    },
+                    distance: step.distance
+                };
+            });
+
+            res.json(out);
+        }
+    } catch (error) {
+        console.error(error);
+        res.sendStatus(500);
+    }
+})
+
 function convertToTile(lat, long, zoom) {
     const n = Math.pow(2, zoom);
     const xTile = Math.floor(n * ((long + 180) / 360));
