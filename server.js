@@ -276,6 +276,7 @@ app.post("/api/search", (req, res) => {
             OR "addr:housenumber" LIKE $1
             OR tags -> 'addr:street' ILIKE $1
             OR tags -> 'addr:postcode' LIKE $1
+            OR tags -> 'addr:city' ILIKE $1
             AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
 
         UNION
@@ -299,6 +300,7 @@ app.post("/api/search", (req, res) => {
             OR "addr:housenumber" LIKE $1
             OR tags -> 'addr:street' ILIKE $1
             OR tags -> 'addr:postcode' LIKE $1
+            OR tags -> 'addr:city' ILIKE $1
             AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
 
         UNION
@@ -373,6 +375,7 @@ app.post("/api/search", (req, res) => {
                     OR "addr:housenumber" LIKE $1
                     OR tags -> 'addr:street' ILIKE $1
                     OR tags -> 'addr:postcode' LIKE $1
+                    OR tags -> 'addr:city' ILIKE $1
                 )
                 AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
 
@@ -398,6 +401,7 @@ app.post("/api/search", (req, res) => {
                     OR "addr:housenumber" LIKE $1
                     OR tags -> 'addr:street' ILIKE $1
                     OR tags -> 'addr:postcode' LIKE $1
+                    OR tags -> 'addr:city' ILIKE $1
                 )
                 AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
 
@@ -482,7 +486,7 @@ app.post("/api/search", (req, res) => {
                     names.add(outObj["name"]);
                 }
             }
-            console.log(out);
+            console.log(out.length);
             res.send(out);
         })
         .catch((error) => {
