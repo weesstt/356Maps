@@ -578,7 +578,7 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
 });
 
 app.post("/api/route", async (req, res) => {
-    const OSRM_BASE_URL = "194.113.75.9:5000";
+    const OSRM_BASE_URL = "http://194.113.75.9:5000";
 
     const { source, destination } = req.body;
     const srcCoords = `${source.lon},${source.lat}`;
