@@ -9,6 +9,7 @@ const UserController = require("./controllers/UserController.js");
 const nodemailer = require("nodemailer");
 const { Pool } = require("pg");
 const { Readable } = require("stream");
+const fetch = require('node-fetch');
 
 var sessions = require("express-session");
 const secret = process.argv[2];
@@ -558,7 +559,7 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
     }
 
     const { l, v, h } = req.params;
-    const result = await fetch(`http://209.94.57.1/tile/${l}/${v}/${h}.png`);
+    const result = await fetch(`http://194.113.75.158/tile/${l}/${v}/${h}.png`);
     res.setHeader("Content-Type", "image/png");
     result.body.pipe(res);
 });
