@@ -597,8 +597,12 @@ app.post("/api/route", async (req, res) => {
             const route = osrmData.routes[0].legs[0];
 
             const out = route.steps.map(step => {
+                maneuverStr = step.maneuver.type;
+                if (maneuverStr === "turn") {
+                    maneuverStr += " " + step.maneuver.modifier
+                }
                 return {
-                    description: `${step.maneuver.type}${` ${step.maneuver.modifier}` ? step.maneuver.type === "turn" : ""} ${step.name}`,
+                    description: `${maneuverStr} ${step.name}`,
                     coordinates: {
                         lat: step.maneuver.location[1],
                         lon: step.maneuver.location[0]
