@@ -277,7 +277,6 @@ app.post("/api/search", (req, res) => {
             OR tags -> 'addr:street' ILIKE $1
             OR tags -> 'addr:postcode' LIKE $1
             OR tags -> 'addr:city' ILIKE $1
-            AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
 
         UNION
 
@@ -301,7 +300,6 @@ app.post("/api/search", (req, res) => {
             OR tags -> 'addr:street' ILIKE $1
             OR tags -> 'addr:postcode' LIKE $1
             OR tags -> 'addr:city' ILIKE $1
-            AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
 
         UNION
 
@@ -320,7 +318,6 @@ app.post("/api/search", (req, res) => {
             ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
         FROM planet_osm_line
         WHERE name ILIKE $1
-        AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857));
     `;
 
     if (onlyInBox) {
