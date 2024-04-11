@@ -578,6 +578,10 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
 });
 
 app.post("/api/route", async (req, res) => {
+    if (!req.session.loggedIn) {
+        res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    }
+
     const OSRM_BASE_URL = "http://194.113.75.9:5000";
 
     const { source, destination } = req.body;
@@ -599,7 +603,7 @@ app.post("/api/route", async (req, res) => {
             const out = route.steps.map(step => {
                 maneuverStr = step.maneuver.type;
                 if (maneuverStr === "turn") {
-                    maneuverStr += " " + step.maneuver.modifier
+                    maneuverStr += " " + step.maneuver.modifier;
                 }
                 return {
                     description: `${maneuverStr} ${step.name}`,
@@ -610,7 +614,6 @@ app.post("/api/route", async (req, res) => {
                     distance: step.distance
                 };
             });
-
             res.json(out);
         }
     } catch (error) {
