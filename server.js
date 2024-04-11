@@ -598,7 +598,7 @@ app.post("/api/route", async (req, res) => {
 
             const out = route.steps.map(step => {
                 return {
-                    description: `${step.maneuver.type} ${step.name}`,
+                    description: `${step.maneuver.type}${` ${step.maneuver.modifier}` ? step.maneuver.type === "turn" : ""} ${step.name}`,
                     coordinates: {
                         lat: step.maneuver.location[1],
                         lon: step.maneuver.location[0]
