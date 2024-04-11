@@ -155,7 +155,7 @@ app.post("/api/adduser", (req, res) => {
                 if (error) {
                     res.send({ status: "ERROR", errorMsg: error });
                 } else {
-                    res.send({ status: "success" });
+                    res.send({ status: "ok" });
                 }
             });
         })
@@ -171,7 +171,7 @@ app.get("/api/verify", (req, res) => {
         console.log(key);
         UserController.verifyUser(email, key)
             .then((success) => {
-                res.send({ status: "success" });
+                res.send({ status: "ok" });
             })
             .catch((error) => {
                 res.send({ status: "ERROR", errorMsg: error });
@@ -189,7 +189,7 @@ app.post("/api/login", (req, res) => {
         .then(() => {
             req.session.loggedIn = true;
             req.session.user = username;
-            res.send({ status: "OK" });
+            res.send({ status: "ok" });
         })
         .catch((error) => {
             res.send({ status: "ERROR", errorMsg: error.message });
@@ -202,7 +202,7 @@ app.post("/api/logout", (req, res) => {
             res.send({ status: "ERROR", errorMsg: err.message });
         }
         res.clearCookie("session");
-        res.send({ status: "OK" });
+        res.send({ status: "ok" });
     });
 });
 
