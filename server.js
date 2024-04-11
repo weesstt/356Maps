@@ -579,7 +579,7 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
 
 app.post("/api/route", async (req, res) => {
     if (!req.session.loggedIn) {
-        res.send({ status: "ERROR", errorMsg: "Not logged in" });
+        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     }
 
     const OSRM_BASE_URL = "http://194.113.75.9:5000";
