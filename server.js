@@ -125,7 +125,7 @@ app.get("/log-in.js", (req, res) => {
     res.sendFile(__dirname + "/log-in.js");
 });
 
-app.post("/api/signup", (req, res) => {
+app.post("/api/adduser", (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
     const emailURLEncode = req.body.email.replace("+", "%2B");
@@ -543,12 +543,20 @@ app.post("/api/search", (req, res) => {
 });
 
 app.post("/convert", (req, res) => {
+    if (!req.session.loggedIn) {
+        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    }
+
     const { lat, long, zoom } = req.body;
     const { xTile, yTile } = convertToTile(lat, long, zoom);
     res.json({ xTile, yTile });
 });
 
 app.get("/tiles/:l/:v/:h.png", async (req, res) => {
+    if (!req.session.loggedIn) {
+        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    }
+
     const { l, v, h } = req.params;
     const result = await fetch(`http://209.94.57.1/tile/${l}/${v}/${h}.png`);
     res.setHeader("Content-Type", "image/png");
@@ -556,6 +564,10 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
 });
 
 app.get("/turn/:TL/:BR.png", async (req, res) => {
+    if (!req.session.loggedIn) {
+        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    }
+
     const { TL, BR } = req.params;
     const [topLat, topLon] = TL.split(",");
     const [bottomLat, bottomLon] = BR.split(",");
@@ -600,7 +612,7 @@ app.post("/api/route", async (req, res) => {
         if (osrmData.routes && osrmData.routes.length > 0) {
             const route = osrmData.routes[0].legs[0];
 
-            const out = route.steps.map(step => {
+            const out = route.steps.map((step) => {
                 maneuverStr = step.maneuver.type;
                 if (maneuverStr === "turn") {
                     maneuverStr += " " + step.maneuver.modifier;
@@ -609,9 +621,9 @@ app.post("/api/route", async (req, res) => {
                     description: `${maneuverStr} ${step.name}`,
                     coordinates: {
                         lat: step.maneuver.location[1],
-                        lon: step.maneuver.location[0]
+                        lon: step.maneuver.location[0],
                     },
-                    distance: step.distance
+                    distance: step.distance,
                 };
             });
             res.json(out);
@@ -620,7 +632,7 @@ app.post("/api/route", async (req, res) => {
         console.error(error);
         res.sendStatus(500);
     }
-})
+});
 
 function convertToTile(lat, long, zoom) {
     const n = Math.pow(2, zoom);
