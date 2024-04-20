@@ -1,6 +1,6 @@
 #!/bin/bash
 
 sudo apt-get update
-sudo apt -y install npm
+sudo apt-get -y install npm
 npm run build
 node server.js secretSession
