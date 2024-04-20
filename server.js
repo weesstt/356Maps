@@ -1,10 +1,7 @@
-const fs = require("fs");
+
 const express = require("express");
-const sharp = require("sharp");
 const mongoose = require("mongoose");
 const MongoStore = require("connect-mongo");
-const bcrypt = require("bcrypt");
-const UserModel = require("./models/users.js");
 const UserController = require("./controllers/UserController.js");
 const nodemailer = require("nodemailer");
 const morgan = require("morgan");

@@ -14,7 +14,6 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.11",
     "nodemon": "^3.1.0",
-    "sharp": "^0.33.2",
     "uuid": "^9.0.1"
   }
 }
