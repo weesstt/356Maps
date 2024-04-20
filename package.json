@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "npm i && sudo apt-get -y install gnupg curl && curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor && echo \"deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list && sudo apt-get -y update && sudo apt-get install -y mongodb-org"
+    "build": "npm i && sudo apt-get -y --no-install-recommends install gnupg curl && curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor && echo \"deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list && sudo apt-get -y --no-install-recommends update && sudo apt-get install -y --no-install-recommends mongodb-org && sudo chown -R mongodb:mongodb /var/lib/mongodb && sudo chown mongodb:mongodb /tmp/mongodb-27017.sock && sudo systemctl start mongod"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
