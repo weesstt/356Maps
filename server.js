@@ -259,7 +259,13 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
     // }
 
     const { l, v, h } = req.params;
-    const result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
+    let result;
+    try {
+        result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
+    } catch (error) {
+        console.err("err")
+        result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
+    }
     res.setHeader("Content-Type", "image/png");
     result.body.pipe(res);
 });
