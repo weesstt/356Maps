@@ -175,7 +175,14 @@ app.post("/api/search", async (req, res) => {
         return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     }
 
-    const result = await fetch(`http://194.113.73.101/api/search`);
+    const result = await fetch(`http://194.113.73.101:3000/api/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', 
+        },
+        body: JSON.stringify(req.body),
+      })
+
     res.setHeader("Content-Type", "application/json");
     result.body.pipe(res);
 });
@@ -186,7 +193,14 @@ app.post("/api/address", async (req, res) => {
         return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     }
 
-    const result = await fetch(`http://194.113.73.101/api/address`);
+    const result = await fetch(`http://194.113.73.101:3000/api/address`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', 
+        },
+        body: JSON.stringify(req.body),
+      })
+
     res.setHeader("Content-Type", "application/json");
     result.body.pipe(res);
 });
