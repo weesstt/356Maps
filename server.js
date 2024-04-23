@@ -264,7 +264,7 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
     try {
         result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
     } catch (error) {
-        return res.sendFile("./ocean.png")
+        return res.sendFile("/ocean.png", {root: __dirname});
     }
     result.body.pipe(res);
 });
