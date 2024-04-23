@@ -81,6 +81,42 @@ app.use((req, res, next) => {
 // request logging middleware
 app.use(morgan("tiny"));
 
+app.get("/", (req, res) => {
+    if (!req.session.loggedIn) {
+        res.sendFile(__dirname + "/log-in.html");
+    } else {
+        res.sendFile(__dirname + "/index.html");
+    }
+});
+
+app.get("/index.html", (req, res) => {
+    if (!req.session.loggedIn) {
+        res.sendFile(__dirname + "/log-in.html");
+    } else {
+        res.sendFile(__dirname + "/index.html");
+    }
+});
+
+app.get("/index.css", (req, res) => {
+    res.sendFile(__dirname + "/index.css");
+});
+
+app.get("/index.js", (req, res) => {
+    res.sendFile(__dirname + "/index.js");
+});
+
+app.get("/log-in.html", (req, res) => {
+    res.sendFile(__dirname + "/log-in.html");
+});
+
+app.get("/log-in.css", (req, res) => {
+    res.sendFile(__dirname + "/log-in.css");
+});
+
+app.get("/log-in.js", (req, res) => {
+    res.sendFile(__dirname + "/log-in.js");
+});
+
 app.post("/api/adduser", (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
