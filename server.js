@@ -10,6 +10,7 @@ const morgan = require("morgan");
 
 var sessions = require("express-session");
 const secret = process.argv[2];
+var ctr = 0;
 
 const app = express();
 const mongoDB = "mongodb://127.0.0.1:27017/warmup2";
@@ -257,16 +258,29 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
     // if (!req.session.loggedIn) {
     //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     // }
-
     const { l, v, h } = req.params;
     res.setHeader("Content-Type", "image/png");
     let result;
-    try {
-        result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
-    } catch (error) {
-        return res.sendFile("/ocean.png", {root: __dirname});
+    if (ctr < 100) {
+        ctr++;
+        try {
+            result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
+        } catch (error) {
+            return res.sendFile("/ocean.png", {root: __dirname});
+        }
+        result.body.pipe(res);
+    } else {
+        if (Math.random() < 0.2) {
+            return res.sendFile("/ocean.png", {root: __dirname});
+        } else {
+            try {
+                result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
+            } catch (error) {
+                return res.sendFile("/ocean.png", {root: __dirname});
+            }
+            result.body.pipe(res);
+        }
     }
-    result.body.pipe(res);
 });
 
 app.get("/turn/:TL/:BR.png", async (req, res) => {
