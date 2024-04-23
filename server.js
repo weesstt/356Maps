@@ -210,9 +210,9 @@ app.get("/api/user", (req, res) => {
 });
 
 app.post("/api/search", async (req, res) => {
-    if (!req.session.loggedIn) {
-        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-    }
+    // if (!req.session.loggedIn) {
+    //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    // }
 
     const result = await fetch(`http://194.113.73.101:3000/api/search`, {
         method: "POST",
@@ -227,9 +227,9 @@ app.post("/api/search", async (req, res) => {
 });
 
 app.post("/api/address", async (req, res) => {
-    if (!req.session.loggedIn) {
-        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-    }
+    // if (!req.session.loggedIn) {
+    //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    // }
 
     const result = await fetch(`http://194.113.73.101:3000/api/address`, {
         method: "POST",
@@ -244,9 +244,9 @@ app.post("/api/address", async (req, res) => {
 });
 
 app.post("/convert", (req, res) => {
-    if (!req.session.loggedIn) {
-        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-    }
+    // if (!req.session.loggedIn) {
+    //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    // }
 
     const { lat, long, zoom } = req.body;
     const { xTile, yTile } = convertToTile(lat, long, zoom);
@@ -254,9 +254,9 @@ app.post("/convert", (req, res) => {
 });
 
 app.get("/tiles/:l/:v/:h.png", async (req, res) => {
-    if (!req.session.loggedIn) {
-        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-    }
+    // if (!req.session.loggedIn) {
+    //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    // }
 
     const { l, v, h } = req.params;
     const result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
@@ -265,9 +265,9 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
 });
 
 app.get("/turn/:TL/:BR.png", async (req, res) => {
-    if (!req.session.loggedIn) {
-        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-    }
+    // if (!req.session.loggedIn) {
+    //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    // }
 
     const { TL, BR } = req.params;
     const [topLat, topLon] = TL.split(",");
@@ -289,9 +289,9 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
 });
 
 app.post("/api/route", async (req, res) => {
-    if (!req.session.loggedIn) {
-        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-    }
+    // if (!req.session.loggedIn) {
+    //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
+    // }
 
     const OSRM_BASE_URL = "http://194.113.75.179:5000";
 
