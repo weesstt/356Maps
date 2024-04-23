@@ -79,7 +79,7 @@ app.use((req, res, next) => {
 });
 
 // request logging middleware
-app.use(morgan("tiny"));
+// app.use(morgan("tiny"));
 
 app.get("/", (req, res) => {
     if (!req.session.loggedIn) {
