@@ -270,7 +270,7 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
         }
         result.body.pipe(res);
     } else {
-        if (Math.random() < 0.25) {
+        if (Math.random() < 0.4) {
             return res.sendFile("/ocean.png", {root: __dirname});
         } else {
             try {
