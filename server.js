@@ -6,6 +6,7 @@ const UserController = require("./controllers/UserController.js");
 const nodemailer = require("nodemailer");
 const { Readable } = require("stream");
 const fetch = require('node-fetch');
+const morgan = require('morgan')
 
 var sessions = require("express-session");
 const secret = process.argv[2];
