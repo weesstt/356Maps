@@ -1,14 +1,9 @@
-const fs = require("fs");
 const express = require("express");
 const sharp = require("sharp");
 const mongoose = require("mongoose");
 const MongoStore = require("connect-mongo");
-const bcrypt = require("bcrypt");
-const UserModel = require("./models/users.js");
 const UserController = require("./controllers/UserController.js");
 const nodemailer = require("nodemailer");
-const morgan = require("morgan");
-const { Pool } = require("pg");
 const { Readable } = require("stream");
 const fetch = require('node-fetch');
 
@@ -34,14 +29,6 @@ const server = app.listen(80, () => {
     db.on("error", console.error.bind(console, "MongoDB connection error"));
 });
 
-const pool = new Pool({
-    user: "root",
-    host: "localhost",
-    database: "new_york",
-    password: "password",
-    port: 5432, // Default PostgreSQL port
-});
-
 const mailTransport = nodemailer.createTransport({
     service: "postfix",
     host: "localhost",
@@ -53,7 +40,6 @@ const mailTransport = nodemailer.createTransport({
 
 process.on("SIGINT", () => {
     server.close(() => {
-        pool.end();
         db.close();
         process.exit(0);
     });
@@ -93,42 +79,6 @@ app.use((req, res, next) => {
 
 // request logging middleware
 app.use(morgan("tiny"));
-
-app.get("/", (req, res) => {
-    if (!req.session.loggedIn) {
-        res.sendFile(__dirname + "/log-in.html");
-    } else {
-        res.sendFile(__dirname + "/index.html");
-    }
-});
-
-app.get("/index.html", (req, res) => {
-    if (!req.session.loggedIn) {
-        res.sendFile(__dirname + "/log-in.html");
-    } else {
-        res.sendFile(__dirname + "/index.html");
-    }
-});
-
-app.get("/index.css", (req, res) => {
-    res.sendFile(__dirname + "/index.css");
-});
-
-app.get("/index.js", (req, res) => {
-    res.sendFile(__dirname + "/index.js");
-});
-
-app.get("/log-in.html", (req, res) => {
-    res.sendFile(__dirname + "/log-in.html");
-});
-
-app.get("/log-in.css", (req, res) => {
-    res.sendFile(__dirname + "/log-in.css");
-});
-
-app.get("/log-in.js", (req, res) => {
-    res.sendFile(__dirname + "/log-in.js");
-});
 
 app.post("/api/adduser", (req, res) => {
     const username = req.body.username;
@@ -219,333 +169,25 @@ app.get("/api/user", (req, res) => {
     }
 });
 
-app.post("/api/search", (req, res) => {
-    const bbox = req.body.bbox;
-    const onlyInBox = req.body.onlyInBox;
-
-    const searchSet = {};
-    const searchTerm = req.body.searchTerm;
-    let queryParams = [`%${searchTerm}%`];
-    for (const word of searchTerm.toLowerCase().split(" ")) {
-        searchSet[word] = true;
+app.post("/api/search", async (req, res) => {
+    if (!req.session.loggedIn) {
+        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     }
 
-    var pointQuery =
-        "SELECT p.*, ST_X(ST_Transform(p.way, 4326)) AS longitude, ST_Y(ST_Transform(p.way, 4326)) AS latitude FROM planet_osm_point p " +
-        "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
-        "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
-        bbox.minLon +
-        ", " +
-        bbox.minLat +
-        ", " +
-        bbox.maxLon +
-        ", " +
-        bbox.maxLat +
-        ", 4326), 4326), 3857));";
+    const result = await fetch(`http://194.113.73.101/api/search`);
+    res.setHeader("Content-Type", "application/json");
+    result.body.pipe(res);
+});
 
-    var polygonQuery =
-        "SELECT p.*, ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS longitude, ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS latitude FROM planet_osm_polygon p " +
-        "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
-        "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
-        bbox.minLon +
-        ", " +
-        bbox.minLat +
-        ", " +
-        bbox.maxLon +
-        ", " +
-        bbox.maxLat +
-        ", 4326), 4326), 3857));";
 
-    var testCombinedQuery = `
-        SELECT
-            name,
-            "addr:housenumber" AS housenumber,
-            tags -> 'addr:street' AS street,
-            tags -> 'addr:city' AS city,
-            tags -> 'addr:state' AS state,
-            tags -> 'addr:postcode' AS zip,
-            ST_X(ST_Transform(way, 4326)) AS longitude, 
-            ST_Y(ST_Transform(way, 4326)) AS latitude,
-            ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
-            ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
-            ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
-            ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
-        FROM planet_osm_point
-        WHERE
-            name ILIKE $1
-            OR "addr:housenumber" LIKE $1
-            OR tags -> 'addr:street' ILIKE $1
-            OR tags -> 'addr:postcode' LIKE $1
-            OR tags -> 'addr:city' ILIKE $1
-
-        UNION
-
-        SELECT
-            name,
-            "addr:housenumber" AS housenumber,
-            tags -> 'addr:street' AS street,
-            tags -> 'addr:city' AS city,
-            tags -> 'addr:state' AS state,
-            tags -> 'addr:postcode' AS zip,
-            ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
-            ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude,
-            ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
-            ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
-            ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
-            ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
-        FROM planet_osm_polygon
-        WHERE
-            name ILIKE $1
-            OR "addr:housenumber" LIKE $1
-            OR tags -> 'addr:street' ILIKE $1
-            OR tags -> 'addr:postcode' LIKE $1
-            OR tags -> 'addr:city' ILIKE $1
-
-        UNION
-
-        SELECT
-            name,
-            "addr:housenumber" AS housenumber,
-            tags -> 'addr:street' AS street,
-            tags -> 'addr:city' AS city,
-            tags -> 'addr:state' AS state,
-            tags -> 'addr:postcode' AS zip,
-            ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
-            ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude,
-            ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
-            ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
-            ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
-            ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
-        FROM planet_osm_line
-        WHERE name ILIKE $1
-    `;
-
-    if (onlyInBox) {
-        //only get center coordinates of visible portion inside bbox
-        let intersection =
-            "ST_Centroid(ST_Intersection(p.way, ST_MakeEnvelope(" +
-            bbox.minLon +
-            ", " +
-            bbox.minLat +
-            ", " +
-            bbox.maxLon +
-            ", " +
-            bbox.maxLat +
-            ", 3857)))";
-
-        polygonQuery =
-            "SELECT p.*, ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS longitude, ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS latitude, " +
-            "ST_X(" +
-            intersection +
-            ") AS longitude, ST_Y(" +
-            intersection +
-            ") AS latitude FROM planet_osm_polygon p ";
-        "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
-            "AND ST_Intersects(p.way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" +
-            bbox.minLon +
-            ", " +
-            bbox.minLat +
-            ", " +
-            bbox.maxLon +
-            ", " +
-            bbox.maxLat +
-            ", 4326), 4326), 3857));";
-
-        testCombinedQuery = `
-            SELECT
-                name,
-                "addr:housenumber" AS housenumber,
-                tags -> 'addr:street' AS street,
-                tags -> 'addr:city' AS city,
-                tags -> 'addr:state' AS state,
-                tags -> 'addr:postcode' AS zip,
-                ST_X(ST_Transform(way, 4326)) AS longitude,
-                ST_Y(ST_Transform(way, 4326)) AS latitude,
-                ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
-                ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
-                ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
-                ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
-            FROM planet_osm_point
-            WHERE
-                (
-                    name ILIKE $1
-                    OR "addr:housenumber" LIKE $1
-                    OR tags -> 'addr:street' ILIKE $1
-                    OR tags -> 'addr:postcode' LIKE $1
-                    OR tags -> 'addr:city' ILIKE $1
-                )
-                AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
-
-            UNION
-
-            SELECT
-                name,
-                "addr:housenumber" AS housenumber,
-                tags -> 'addr:street' AS street,
-                tags -> 'addr:city' AS city,
-                tags -> 'addr:state' AS state,
-                tags -> 'addr:postcode' AS zip,
-                ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
-                ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude,
-                ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
-                ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
-                ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
-                ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
-            FROM planet_osm_polygon
-            WHERE
-                (
-                    name ILIKE $1
-                    OR "addr:housenumber" LIKE $1
-                    OR tags -> 'addr:street' ILIKE $1
-                    OR tags -> 'addr:postcode' LIKE $1
-                    OR tags -> 'addr:city' ILIKE $1
-                )
-                AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857))
-
-            UNION
-
-            SELECT
-                name,
-                "addr:housenumber" AS housenumber,
-                tags -> 'addr:street' AS street,
-                tags -> 'addr:city' AS city,
-                tags -> 'addr:state' AS state,
-                tags -> 'addr:postcode' AS zip,
-                ST_X(ST_Transform(ST_Centroid(way), 4326)) AS longitude,
-                ST_Y(ST_Transform(ST_Centroid(way), 4326)) AS latitude,
-                ST_XMin(ST_Transform(ST_Envelope(way), 4326)) AS xmin,
-                ST_XMax(ST_Transform(ST_Envelope(way), 4326)) AS xmax,
-                ST_YMin(ST_Transform(ST_Envelope(way), 4326)) AS ymin,
-                ST_YMax(ST_Transform(ST_Envelope(way), 4326)) AS ymax
-            FROM planet_osm_line
-            WHERE
-                name ILIKE $1
-                AND ST_Within(way, ST_Transform(ST_MakeEnvelope($2, $3, $4, $5, 4326), 3857));
-        `;
+app.post("/api/address", async (req, res) => {
+    if (!req.session.loggedIn) {
+        return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     }
-    queryParams.push(bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat);
 
-    // let pointQuery = "SELECT p.*, ST_AsText(ST_Transform(ST_Centroid(p.way), 4326)) AS center_coordinates " +
-    // "FROM planet_osm_point p " +
-    // "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
-    // "AND ST_Intersects(way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" + bbox.minLat +", " + bbox.minLon + ", " + bbox.maxLat + ", " + bbox.maxLon + ", 4326), 4326), 3857));";
-
-    // let polygonQuery = "SELECT p.*, ST_AsText(ST_Transform(ST_Centroid(p.way), 4326)) AS center_coordinates " +
-    // "FROM planet_osm_polygon p " +
-    // "WHERE amenity IS NOT NULL AND name IS NOT NULL " +
-    // "AND ST_Intersects(way, ST_Transform(ST_SetSRID(ST_MakeEnvelope(" + bbox.minLat +", " + bbox.minLon + ", " + bbox.maxLat + ", " + bbox.maxLon + ", 4326), 4326), 3857));";
-
-    // if(req.body.onlyInBox == true){ //
-    //     polygonQuery = "SELECT p.*, ST_AsText(ST_Transform(ST_Centroid(ST_Intersection(p.way, bbox.bbox_geom)), 4326)) AS center_coordinates " +
-    //     "FROM planet_osm_polygon p JOIN (SELECT ST_Transform(ST_SetSRID(ST_MakeEnvelope(" + bbox.minLat + ", " + bbox.minLon + ", " + bbox.maxLat + ", " + bbox.maxLon + ", 4326), 4326), 3857) AS bbox_geom) AS bbox ON ST_Intersects(p.way, bbox.bbox_geom) " +
-    //     "WHERE boundary IS NOT NULL AND amenity IS NOT NULL AND name IS NOT NULL;"
-
-    //     pointQuery = "SELECT p.*, ST_AsText(ST_Transform(ST_Centroid(ST_Intersection(p.way, bbox.bbox_geom)), 4326)) AS center_coordinates " +
-    //     "FROM planet_osm_point p JOIN (SELECT ST_Transform(ST_SetSRID(ST_MakeEnvelope(" + bbox.minLat + ", " + bbox.minLon + ", " + bbox.maxLat + ", " + bbox.maxLon + ", 4326), 4326), 3857) AS bbox_geom) AS bbox ON ST_Intersects(p.way, bbox.bbox_geom) " +
-    //     "WHERE boundary IS NOT NULL AND amenity IS NOT NULL AND name IS NOT NULL;"
-    // }
-
-    // Execute the query
-    names = new Set();
-
-    pool.query(testCombinedQuery, queryParams)
-        .then((queryResult) => {
-            const resultRows = queryResult.rows;
-            let out = [];
-            for (const row of resultRows) {
-                let outObj = {};
-                outObj["coordinates"] = {
-                    lat: row.latitude,
-                    lon: row.longitude,
-                };
-
-                outObj["name"] = "";
-                if (row.name) {
-                    outObj["name"] = row.name;
-                } else {
-                    outObj["name"] += row.housenumber
-                        ? row.housenumber + " "
-                        : "";
-                    outObj["name"] += row.street ? row.street + ", " : "";
-                    outObj["name"] += row.city ? row.city + ", " : "";
-                    outObj["name"] += row.state ? row.state + " " : "";
-                    outObj["name"] += row.zip ? row.zip : "";
-                }
-
-                outObj["bbox"] = {
-                    minLat: row.ymin,
-                    minLon: row.xmin,
-                    maxLat: row.ymax,
-                    maxLon: row.xmax,
-                };
-                if (!names.has(outObj["name"])) {
-                    out.push(outObj);
-                    names.add(outObj["name"]);
-                }
-            }
-            console.log(out.length);
-            res.send(out);
-        })
-        .catch((error) => {
-            res.status(500).send(error);
-            console.log(error);
-        });
-
-    // pool.query(pointQuery)
-    //     .then((pointResults) => {
-    //         pool.query(polygonQuery)
-    //             .then((polygonResults) => {
-    //                 const results = [];
-    //                 for (const result of pointResults.rows.concat(
-    //                     polygonResults.rows
-    //                 )) {
-    //                     var added = false;
-    //                     for (const word of result.name
-    //                         .toLowerCase()
-    //                         .split(" ")) {
-    //                         if (word in searchSet) {
-    //                             results.push(result);
-    //                             added = true;
-    //                             break;
-    //                         }
-    //                     }
-
-    //                     if (added) continue;
-
-    //                     for (const word of result.amenity
-    //                         .toLowerCase()
-    //                         .split(" ")) {
-    //                         if (word in searchSet) {
-    //                             results.push(result);
-    //                             added = true;
-    //                             break;
-    //                         }
-    //                     }
-
-    //                     if (added) continue;
-
-    //                     if (result.brand != null) {
-    //                         for (const word of result.brand
-    //                             .toLowerCase()
-    //                             .split(" ")) {
-    //                             if (word in searchSet) {
-    //                                 results.push(result);
-    //                                 break;
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //                 res.send(results);
-    //             })
-    //             .catch((error) => {
-    //                 res.status(500).send(error);
-    //                 console.log(error);
-    //             });
-    //     })
-    //     .catch((error) => {
-    //         res.status(500).send(error);
-    //         console.log(error);
-    //     });
+    const result = await fetch(`http://194.113.73.101/api/address`);
+    res.setHeader("Content-Type", "application/json");
+    result.body.pipe(res);
 });
 
 app.post("/convert", (req, res) => {
@@ -564,7 +206,7 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
     }
 
     const { l, v, h } = req.params;
-    const result = await fetch(`http://194.113.75.158/tile/${l}/${v}/${h}.png`);
+    const result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
     res.setHeader("Content-Type", "image/png");
     result.body.pipe(res);
 });
@@ -585,7 +227,7 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
     console.log(TL, BR, xTile, yTile);
 
     const tile = await fetch(
-        `http://194.113.75.158/tile/10/${xTile}/${yTile}.png`
+        `http://209.94.56.197/tile/10/${xTile}/${yTile}.png`
     );
     const buffer = await streamToBuffer(tile.body);
     const image = await sharp(buffer).resize(100, 100).toBuffer();
@@ -600,7 +242,7 @@ app.post("/api/route", async (req, res) => {
         return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     }
 
-    const OSRM_BASE_URL = "http://194.113.75.9:5000";
+    const OSRM_BASE_URL = "http://194.113.75.179:5000";
 
     const { source, destination } = req.body;
     const srcCoords = `${source.lon},${source.lat}`;
