@@ -281,7 +281,7 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
         `http://209.94.56.197/tile/10/${xTile}/${yTile}.png`
     );
     res.setHeader("Content-Type", "image/png");
-    tile.pipe(res);
+    tile.body.pipe(res);
 });
 
 app.post("/api/route", async (req, res) => {
