@@ -81,7 +81,7 @@ app.use((req, res, next) => {
 // request logging middleware
 app.use(morgan("tiny"));
 
-app.post("/api/adduser", (req, res) => {
+app.post("/api/signup", (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
     const emailURLEncode = req.body.email.replace("+", "%2B");
