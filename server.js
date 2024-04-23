@@ -5,8 +5,8 @@ const MongoStore = require("connect-mongo");
 const UserController = require("./controllers/UserController.js");
 const nodemailer = require("nodemailer");
 const { Readable } = require("stream");
-const fetch = require('node-fetch');
-const morgan = require('morgan')
+const fetch = require("node-fetch");
+const morgan = require("morgan");
 
 var sessions = require("express-session");
 const secret = process.argv[2];
@@ -184,6 +184,7 @@ app.post("/api/login", (req, res) => {
             res.send({ status: "ok" });
         })
         .catch((error) => {
+            console.log("Login Error: " + error.message);
             res.send({ status: "ERROR", errorMsg: error.message });
         });
 });
@@ -200,8 +201,10 @@ app.post("/api/logout", (req, res) => {
 
 app.get("/api/user", (req, res) => {
     if (req.session.loggedIn) {
+        console.log("Logged in as: " + req.session.user);
         res.send({ loggedin: true, username: req.session.user });
     } else {
+        console.log("Not logged in");
         res.send({ status: "ERROR", errorMsg: "Not logged in" });
     }
 });
@@ -212,17 +215,16 @@ app.post("/api/search", async (req, res) => {
     }
 
     const result = await fetch(`http://194.113.73.101:3000/api/search`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json', 
+            "Content-Type": "application/json",
         },
         body: JSON.stringify(req.body),
-      })
+    });
 
     res.setHeader("Content-Type", "application/json");
     result.body.pipe(res);
 });
-
 
 app.post("/api/address", async (req, res) => {
     if (!req.session.loggedIn) {
@@ -230,12 +232,12 @@ app.post("/api/address", async (req, res) => {
     }
 
     const result = await fetch(`http://194.113.73.101:3000/api/address`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json', 
+            "Content-Type": "application/json",
         },
         body: JSON.stringify(req.body),
-      })
+    });
 
     res.setHeader("Content-Type", "application/json");
     result.body.pipe(res);
@@ -248,7 +250,7 @@ app.post("/convert", (req, res) => {
 
     const { lat, long, zoom } = req.body;
     const { xTile, yTile } = convertToTile(lat, long, zoom);
-    res.json({ "x_tile": xTile, "y_tile": yTile });
+    res.json({ x_tile: xTile, y_tile: yTile });
 });
 
 app.get("/tiles/:l/:v/:h.png", async (req, res) => {
