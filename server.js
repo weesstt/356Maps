@@ -336,7 +336,7 @@ app.post("/api/route", async (req, res) => {
     //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     // }
 
-    const result = await fetch(`http://209.151.148.194:3000/api/route`, {
+    const result = await fetch(`http://209.94.56.163:3000/api/route`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
