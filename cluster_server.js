@@ -510,9 +510,10 @@ if (cluster.isMaster) {
         res.setHeader("Content-Type", "image/png");
 
         try {
-            const cachedTile = await redisClient.getBuffer(cacheKey);
+            const cachedTile = await redisClient.get(cacheKey);
             if (cachedTile) {
-                return res.end(cachedTile);
+                const stream = bufferToStream(cachedTile);
+                return stream.pipe(res);
             }
         } catch (error) {
             console.error('Redis error:', error);
@@ -607,7 +608,7 @@ if (cluster.isMaster) {
         // result.body.pipe(res);
 
         if (rctr >= 200) {
-            if (Math.random() < 0.25) {
+            if (Math.random() < 0.3) {
                 return res.json(dummyDirections);
             }
         } else {
