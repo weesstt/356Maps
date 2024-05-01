@@ -215,7 +215,7 @@ app.post("/api/search", async (req, res) => {
     //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     // }
 
-    const result = await fetch(`http://194.113.73.101:3000/api/search`, {
+    const result = await fetch(`http://194.113.75.169:3000/api/search`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -232,7 +232,7 @@ app.post("/api/address", async (req, res) => {
     //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     // }
 
-    const result = await fetch(`http://194.113.73.101:3000/api/address`, {
+    const result = await fetch(`http://194.113.75.169:3000/api/address`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
