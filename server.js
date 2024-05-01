@@ -315,10 +315,10 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
     let url;
 
     if(countTurn == 0){
-        url = `http://194.113.73.134/tile/${l}/${v}/${h}.png`;
+        url = `http://194.113.73.134/tile/15/${xTile}/${yTile}.png`;
         countTurn++;
     }else{
-        url = `http://209.94.59.180/tile/${l}/${v}/${h}.png`;
+        url = `http://209.94.59.180/tile/15/${xTile}/${yTile}.png`;
         countTurn--;
     }
 
@@ -336,7 +336,7 @@ app.post("/api/route", async (req, res) => {
     //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     // }
 
-    const OSRM_BASE_URL = "http://209.151.154.83:5000";
+    const OSRM_BASE_URL = "http://209.151.148.194:5000";
 
     const { source, destination } = req.body;
     const srcCoords = `${source.lon},${source.lat}`;
