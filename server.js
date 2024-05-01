@@ -336,44 +336,55 @@ app.post("/api/route", async (req, res) => {
     //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     // }
 
-    const OSRM_BASE_URL = "http://209.151.148.194:5000";
+    const result = await fetch(`http://209.151.148.194:3000/api/route`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(req.body),
+    });
 
-    const { source, destination } = req.body;
-    const srcCoords = `${source.lon},${source.lat}`;
-    const destCoords = `${destination.lon},${destination.lat}`;
+    res.setHeader("Content-Type", "application/json");
+    result.body.pipe(res);
 
-    const osrmURL = `${OSRM_BASE_URL}/route/v1/driving/${srcCoords};${destCoords}?overview=false&steps=true`;
+    // const OSRM_BASE_URL = "http://209.151.148.194:3000";
 
-    try {
-        const osrmRes = await fetch(osrmURL);
-        if (!osrmRes.ok) {
-            throw new Error("Failed to fetch from OSRM");
-        }
-        const osrmData = await osrmRes.json();
+    // const { source, destination } = req.body;
+    // const srcCoords = `${source.lon},${source.lat}`;
+    // const destCoords = `${destination.lon},${destination.lat}`;
 
-        if (osrmData.routes && osrmData.routes.length > 0) {
-            const route = osrmData.routes[0].legs[0];
+    // const osrmURL = `${OSRM_BASE_URL}/route/v1/driving/${srcCoords};${destCoords}?overview=false&steps=true`;
 
-            const out = route.steps.map((step) => {
-                maneuverStr = step.maneuver.type;
-                if (maneuverStr === "turn") {
-                    maneuverStr += " " + step.maneuver.modifier;
-                }
-                return {
-                    description: `${maneuverStr} ${step.name}`,
-                    coordinates: {
-                        lat: step.maneuver.location[1],
-                        lon: step.maneuver.location[0],
-                    },
-                    distance: step.distance,
-                };
-            });
-            res.json(out);
-        }
-    } catch (error) {
-        console.error(error);
-        res.sendStatus(500);
-    }
+    // try {
+    //     const osrmRes = await fetch(osrmURL);
+    //     if (!osrmRes.ok) {
+    //         throw new Error("Failed to fetch from OSRM");
+    //     }
+    //     const osrmData = await osrmRes.json();
+
+    //     if (osrmData.routes && osrmData.routes.length > 0) {
+    //         const route = osrmData.routes[0].legs[0];
+
+    //         const out = route.steps.map((step) => {
+    //             maneuverStr = step.maneuver.type;
+    //             if (maneuverStr === "turn") {
+    //                 maneuverStr += " " + step.maneuver.modifier;
+    //             }
+    //             return {
+    //                 description: `${maneuverStr} ${step.name}`,
+    //                 coordinates: {
+    //                     lat: step.maneuver.location[1],
+    //                     lon: step.maneuver.location[0],
+    //                 },
+    //                 distance: step.distance,
+    //             };
+    //         });
+    //         res.json(out);
+    //     }
+    // } catch (error) {
+    //     console.error(error);
+    //     res.sendStatus(500);
+    // }
 });
 
 function convertToTile(lat, long, zoom) {
