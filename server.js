@@ -336,7 +336,7 @@ app.post("/api/route", async (req, res) => {
     //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     // }
 
-    const OSRM_BASE_URL = "http://194.113.75.179:5000";
+    const OSRM_BASE_URL = "http://209.151.154.83:5000";
 
     const { source, destination } = req.body;
     const srcCoords = `${source.lon},${source.lat}`;
