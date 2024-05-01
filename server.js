@@ -265,12 +265,12 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
 
     let url;
 
-    if(count == 0){
+    if(countTiles == 0){
         url = `http://194.113.73.134/tile/${l}/${v}/${h}.png`;
-        count++;
+        countTiles++;
     }else{
         url = `http://209.94.59.180/tile/${l}/${v}/${h}.png`;
-        count--;
+        countTiles--;
     }
     
 
