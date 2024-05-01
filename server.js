@@ -254,7 +254,7 @@ app.post("/convert", (req, res) => {
     res.json({ x_tile: xTile, y_tile: yTile });
 });
 
-let count = 0;
+let countTiles = 0;
 
 app.get("/tiles/:l/:v/:h.png", async (req, res) => {
     // if (!req.session.loggedIn) {
@@ -297,6 +297,8 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
     }
 });
 
+let countTurn = 0;
+
 app.get("/turn/:TL/:BR.png", async (req, res) => {
     // if (!req.session.loggedIn) {
     //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
@@ -310,9 +312,17 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
     const centerLon = (parseFloat(topLon) + parseFloat(bottomLon)) / 2;
     const { xTile, yTile } = convertToTile(centerLat, centerLon, 15);
 
-    const tile = await fetch(
-        `http://209.94.56.197/tile/15/${xTile}/${yTile}.png`
-    );
+    let url;
+
+    if(count == 0){
+        url = `http://194.113.73.134/tile/${l}/${v}/${h}.png`;
+        count++;
+    }else{
+        url = `http://209.94.59.180/tile/${l}/${v}/${h}.png`;
+        count--;
+    }
+
+    const tile = await fetch(url);
     const buffer = await streamToBuffer(tile.body);
     const image = await sharp(buffer).resize(100, 100).toBuffer();
     const stream = bufferToStream(image);
