@@ -506,18 +506,7 @@ if (cluster.isMaster) {
         //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
         // }
         const { l, v, h } = req.params;
-        const cacheKey = `${l},${v},${h}`;
         res.setHeader("Content-Type", "image/png");
-
-        try {
-            const cachedTile = await redisClient.get(cacheKey);
-            if (cachedTile) {
-                const stream = bufferToStream(cachedTile);
-                return stream.pipe(res);
-            }
-        } catch (error) {
-            console.error('Redis error:', error);
-        }
 
         let url;
 
@@ -537,8 +526,6 @@ if (cluster.isMaster) {
             ctr++;
             try {
                 result = await fetch(url);
-                const buffer = await streamToBuffer(result.body);
-                await redisClient.set(cacheKey, buffer);
             } catch (error) {
                 return res.sendFile("/ocean.png", {root: __dirname});
             }
