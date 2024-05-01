@@ -16,8 +16,8 @@ function getNextOSRMServer() {
 if (cluster.isMaster) {
     console.log(`Master: ${process.pid}`);
 
-    // 8 cores
-    for (let i = 0; i < 8; i++) {
+    // 32 cores
+    for (let i = 0; i < 32; i++) {
         cluster.fork();
     }
 
@@ -33,6 +33,7 @@ if (cluster.isMaster) {
     const nodemailer = require("nodemailer");
     const { Readable } = require("stream");
     const fetch = require("node-fetch");
+    const redis = require("redis");
     const morgan = require("morgan");
 
     var sessions = require("express-session");
@@ -43,6 +44,12 @@ if (cluster.isMaster) {
     const mongoDB = "mongodb://127.0.0.1:27017/warmup2";
     var db;
     const cors = require("cors");
+
+    const redisClient = redis.createClient({
+        url: "redis://localhost:6379"
+    })
+    redisClient.connect();
+    redisClient.on("error", (err) => console.error(err))
 
     const server = app.listen(80, () => {
         if (process.argv.length !== 3) {
@@ -380,10 +387,15 @@ if (cluster.isMaster) {
         const { source, destination } = req.body;
         const srcCoords = `${source.lon},${source.lat}`;
         const destCoords = `${destination.lon},${destination.lat}`;
+        const cacheKey = `${srcCoords};${destCoords}`;
 
         const osrmURL = `${OSRM_BASE_URL}/route/v1/driving/${srcCoords};${destCoords}?overview=false&steps=true`;
 
         try {
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                return res.json(JSON.parse(cachedData))
+            }
             const osrmRes = await fetch(osrmURL);
             if (!osrmRes.ok) {
                 // throw new Error("Failed to fetch from OSRM");
@@ -416,6 +428,9 @@ if (cluster.isMaster) {
                         distance: step.distance,
                     };
                 });
+
+                await redisClient.set(cacheKey, JSON.stringify(out));
+
                 res.json(out);
             }
         } catch (error) {
@@ -455,8 +470,45 @@ if (cluster.isMaster) {
                     res.json(out);
                 }
             } catch (error) {
-                console.error(error);
-                res.sendStatus(500);
+                try {
+                    const osrmRes = await fetch(osrmURL);
+                    if (!osrmRes.ok) {
+                        // throw new Error("Failed to fetch from OSRM");
+                        const out = {
+                            description: "Failed to fetch from OSRM",
+                            coordinates: {
+                                lat: 0,
+                                lon: 0
+                            },
+                            distance: 0
+                        }
+                        return res.json(out)
+                    }
+                    const osrmData = await osrmRes.json();
+        
+                    if (osrmData.routes && osrmData.routes.length > 0) {
+                        const route = osrmData.routes[0].legs[0];
+        
+                        const out = route.steps.map((step) => {
+                            let maneuverStr = step.maneuver.type;
+                            if (maneuverStr === "turn") {
+                                maneuverStr += " " + step.maneuver.modifier;
+                            }
+                            return {
+                                description: `${maneuverStr} ${step.name}`,
+                                coordinates: {
+                                    lat: step.maneuver.location[1],
+                                    lon: step.maneuver.location[0],
+                                },
+                                distance: step.distance,
+                            };
+                        });
+                        res.json(out);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    res.sendStatus(500);
+                }
             }
         }
     });
