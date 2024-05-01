@@ -314,12 +314,12 @@ app.get("/turn/:TL/:BR.png", async (req, res) => {
 
     let url;
 
-    if(count == 0){
+    if(countTurn == 0){
         url = `http://194.113.73.134/tile/${l}/${v}/${h}.png`;
-        count++;
+        countTurn++;
     }else{
         url = `http://209.94.59.180/tile/${l}/${v}/${h}.png`;
-        count--;
+        countTurn--;
     }
 
     const tile = await fetch(url);
