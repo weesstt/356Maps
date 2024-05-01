@@ -1,5 +1,203 @@
 const cluster = require('cluster');
 
+const dummyDirections = [{
+    "description": "depart ",
+    "coordinates": {
+        "lat": 44.845336,
+        "lon": -75.278671
+    },
+    "distance": 321.3
+}, {
+    "description": "turn right ",
+    "coordinates": {
+        "lat": 44.842938,
+        "lon": -75.28074
+    },
+    "distance": 1402.1
+}, {
+    "description": "turn left ",
+    "coordinates": {
+        "lat": 44.835034,
+        "lon": -75.294091
+    },
+    "distance": 1184
+}, {
+    "description": "end of road ",
+    "coordinates": {
+        "lat": 44.827526,
+        "lon": -75.285459
+    },
+    "distance": 285.6
+}, {
+    "description": "turn right State Highway 37",
+    "coordinates": {
+        "lat": 44.825744,
+        "lon": -75.28298
+    },
+    "distance": 55755.1
+}, {
+    "description": "new name North Main Street",
+    "coordinates": {
+        "lat": 44.453277,
+        "lon": -75.692017
+    },
+    "distance": 1509.4
+}, {
+    "description": "new name State Highway 37",
+    "coordinates": {
+        "lat": 44.440537,
+        "lon": -75.69858
+    },
+    "distance": 28943.9
+}, {
+    "description": "new name State Route 37",
+    "coordinates": {
+        "lat": 44.210031,
+        "lon": -75.827492
+    },
+    "distance": 21328.6
+}, {
+    "description": "turn right ",
+    "coordinates": {
+        "lat": 44.040164,
+        "lon": -75.900932
+    },
+    "distance": 1361.6
+}, {
+    "description": "off ramp ",
+    "coordinates": {
+        "lat": 44.034638,
+        "lon": -75.91609
+    },
+    "distance": 257.2
+}, {
+    "description": "merge ",
+    "coordinates": {
+        "lat": 44.032429,
+        "lon": -75.915611
+    },
+    "distance": 110739.9
+}, {
+    "description": "off ramp ",
+    "coordinates": {
+        "lat": 43.097479,
+        "lon": -76.159738
+    },
+    "distance": 758
+}, {
+    "description": "fork ",
+    "coordinates": {
+        "lat": 43.095883,
+        "lon": -76.167537
+    },
+    "distance": 244.9
+}, {
+    "description": "merge New York State Thruway",
+    "coordinates": {
+        "lat": 43.095609,
+        "lon": -76.170154
+    },
+    "distance": 234165.3
+}, {
+    "description": "fork New York State Thruway",
+    "coordinates": {
+        "lat": 42.839082,
+        "lon": -78.793021
+    },
+    "distance": 62269.6
+}, {
+    "description": "off ramp ",
+    "coordinates": {
+        "lat": 42.463519,
+        "lon": -79.299616
+    },
+    "distance": 1678.3
+}, {
+    "description": "turn straight Bennett Road",
+    "coordinates": {
+        "lat": 42.459495,
+        "lon": -79.312768
+    },
+    "distance": 1929.9
+}, {
+    "description": "new name Lamphere Street",
+    "coordinates": {
+        "lat": 42.475496,
+        "lon": -79.321906
+    },
+    "distance": 369.3
+}, {
+    "description": "new name Maple Avenue",
+    "coordinates": {
+        "lat": 42.478553,
+        "lon": -79.323671
+    },
+    "distance": 448.5
+}, {
+    "description": "new name Main Street",
+    "coordinates": {
+        "lat": 42.481309,
+        "lon": -79.327494
+    },
+    "distance": 782.2
+}, {
+    "description": "turn left Lake Shore Drive East",
+    "coordinates": {
+        "lat": 42.488203,
+        "lon": -79.329425
+    },
+    "distance": 2792.5
+}, {
+    "description": "new name West Lake Road",
+    "coordinates": {
+        "lat": 42.479277,
+        "lon": -79.359851
+    },
+    "distance": 5481.2
+}, {
+    "description": "turn right Van Buren Bay Court",
+    "coordinates": {
+        "lat": 42.450142,
+        "lon": -79.406091
+    },
+    "distance": 86.8
+}, {
+    "description": "new name Van Buren Bay Road",
+    "coordinates": {
+        "lat": 42.450127,
+        "lon": -79.407132
+    },
+    "distance": 203.5
+}, {
+    "description": "turn right 1st Street",
+    "coordinates": {
+        "lat": 42.450139,
+        "lon": -79.409607
+    },
+    "distance": 103.2
+}, {
+    "description": "turn left Lakeside Boulevard",
+    "coordinates": {
+        "lat": 42.451068,
+        "lon": -79.40961
+    },
+    "distance": 71.3
+}, {
+    "description": "continue Lakeside Boulevard",
+    "coordinates": {
+        "lat": 42.450966,
+        "lon": -79.410466
+    },
+    "distance": 686.3
+}, {
+    "description": "arrive Lakeside Boulevard",
+    "coordinates": {
+        "lat": 42.453613,
+        "lon": -79.416804
+    },
+    "distance": 0
+}];
+
 const osrmServers = [
     "http://209.151.148.194:5000",
     "http://194.113.74.160:5000",
@@ -39,6 +237,7 @@ if (cluster.isMaster) {
     var sessions = require("express-session");
     const secret = process.argv[2];
     var ctr = 0;
+    var rctr = 0;
 
     const app = express();
     const mongoDB = "mongodb://127.0.0.1:27017/warmup2";
@@ -81,6 +280,11 @@ if (cluster.isMaster) {
             process.exit(0);
         });
     });
+
+    process.on("SIGBREAK", () => {
+        ctr = 0;
+        rctr = 0;
+    })
 
     app.use(
         cors({
@@ -381,6 +585,14 @@ if (cluster.isMaster) {
 
         // res.setHeader("Content-Type", "application/json");
         // result.body.pipe(res);
+
+        if (rctr >= 200) {
+            if (Math.random() < 0.25) {
+                return res.json(dummyDirections);
+            }
+        } else {
+            rctr++;
+        }
 
         const OSRM_BASE_URL = getNextOSRMServer();
 
