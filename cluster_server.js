@@ -9,7 +9,7 @@ if (cluster.isMaster) {
     }
 
     cluster.on('exit', (worker, code, signal) => {
-        console.log(`worker ${worker.process.pid} dead`);
+        console.log(`M: worker ${worker.process.pid} dead`);
     });
 } else {
     const express = require("express");
@@ -39,7 +39,7 @@ if (cluster.isMaster) {
                 process.exit(0);
             });
         }
-
+        console.log(`Worker ${process.pid} started`);
         mongoose.connect(mongoDB, {});
         db = mongoose.connection;
         db.on("error", console.error.bind(console, "MongoDB connection error"));
@@ -55,6 +55,7 @@ if (cluster.isMaster) {
     });
 
     process.on("SIGINT", () => {
+        console.log(`Worker ${process.pid} closed`);
         server.close(() => {
             db.close();
             process.exit(0);
@@ -229,7 +230,7 @@ if (cluster.isMaster) {
         //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
         // }
 
-        const result = await fetch(`http://194.113.73.101:3000/api/search`, {
+        const result = await fetch(`http://194.113.75.169:3000/api/search`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -246,7 +247,7 @@ if (cluster.isMaster) {
         //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
         // }
 
-        const result = await fetch(`http://194.113.73.101:3000/api/address`, {
+        const result = await fetch(`http://194.113.75.169:3000/api/address`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -268,17 +269,31 @@ if (cluster.isMaster) {
         res.json({ x_tile: xTile, y_tile: yTile });
     });
 
+    let countTiles = 0;
+
     app.get("/tiles/:l/:v/:h.png", async (req, res) => {
         // if (!req.session.loggedIn) {
         //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
         // }
         const { l, v, h } = req.params;
         res.setHeader("Content-Type", "image/png");
+
+        let url;
+
+        if(countTiles == 0){
+            url = `http://194.113.73.134/tile/${l}/${v}/${h}.png`;
+            countTiles++;
+        }else{
+            url = `http://209.94.59.180/tile/${l}/${v}/${h}.png`;
+            countTiles--;
+        }
+        
+
         let result;
-        if (ctr < 100) {
+        if (ctr < 200) {
             ctr++;
             try {
-                result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
+                result = await fetch(url);
             } catch (error) {
                 return res.sendFile("/ocean.png", {root: __dirname});
             }
@@ -288,7 +303,7 @@ if (cluster.isMaster) {
                 return res.sendFile("/ocean.png", {root: __dirname});
             } else {
                 try {
-                    result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
+                    result = await fetch(url);
                 } catch (error) {
                     return res.sendFile("/ocean.png", {root: __dirname});
                 }
@@ -296,6 +311,8 @@ if (cluster.isMaster) {
             }
         }
     });
+
+    let countTurn = 0;
 
     app.get("/turn/:TL/:BR.png", async (req, res) => {
         // if (!req.session.loggedIn) {
@@ -310,9 +327,17 @@ if (cluster.isMaster) {
         const centerLon = (parseFloat(topLon) + parseFloat(bottomLon)) / 2;
         const { xTile, yTile } = convertToTile(centerLat, centerLon, 15);
 
-        const tile = await fetch(
-            `http://209.94.56.197/tile/15/${xTile}/${yTile}.png`
-        );
+        let url;
+
+        if(countTurn == 0){
+            url = `http://194.113.73.134/tile/15/${xTile}/${yTile}.png`;
+            countTurn++;
+        }else{
+            url = `http://209.94.59.180/tile/15/${xTile}/${yTile}.png`;
+            countTurn--;
+        }
+
+        const tile = await fetch(url);
         const buffer = await streamToBuffer(tile.body);
         const image = await sharp(buffer).resize(100, 100).toBuffer();
         const stream = bufferToStream(image);
@@ -326,44 +351,55 @@ if (cluster.isMaster) {
         //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
         // }
 
-        const OSRM_BASE_URL = "http://194.113.75.179:5000";
+        const result = await fetch(`http://209.94.56.163:3000/api/route`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(req.body),
+        });
 
-        const { source, destination } = req.body;
-        const srcCoords = `${source.lon},${source.lat}`;
-        const destCoords = `${destination.lon},${destination.lat}`;
+        res.setHeader("Content-Type", "application/json");
+        result.body.pipe(res);
 
-        const osrmURL = `${OSRM_BASE_URL}/route/v1/driving/${srcCoords};${destCoords}?overview=false&steps=true`;
+        // const OSRM_BASE_URL = "http://209.151.148.194:3000";
 
-        try {
-            const osrmRes = await fetch(osrmURL);
-            if (!osrmRes.ok) {
-                throw new Error("Failed to fetch from OSRM");
-            }
-            const osrmData = await osrmRes.json();
+        // const { source, destination } = req.body;
+        // const srcCoords = `${source.lon},${source.lat}`;
+        // const destCoords = `${destination.lon},${destination.lat}`;
 
-            if (osrmData.routes && osrmData.routes.length > 0) {
-                const route = osrmData.routes[0].legs[0];
+        // const osrmURL = `${OSRM_BASE_URL}/route/v1/driving/${srcCoords};${destCoords}?overview=false&steps=true`;
 
-                const out = route.steps.map((step) => {
-                    maneuverStr = step.maneuver.type;
-                    if (maneuverStr === "turn") {
-                        maneuverStr += " " + step.maneuver.modifier;
-                    }
-                    return {
-                        description: `${maneuverStr} ${step.name}`,
-                        coordinates: {
-                            lat: step.maneuver.location[1],
-                            lon: step.maneuver.location[0],
-                        },
-                        distance: step.distance,
-                    };
-                });
-                res.json(out);
-            }
-        } catch (error) {
-            console.error(error);
-            res.sendStatus(500);
-        }
+        // try {
+        //     const osrmRes = await fetch(osrmURL);
+        //     if (!osrmRes.ok) {
+        //         throw new Error("Failed to fetch from OSRM");
+        //     }
+        //     const osrmData = await osrmRes.json();
+
+        //     if (osrmData.routes && osrmData.routes.length > 0) {
+        //         const route = osrmData.routes[0].legs[0];
+
+        //         const out = route.steps.map((step) => {
+        //             maneuverStr = step.maneuver.type;
+        //             if (maneuverStr === "turn") {
+        //                 maneuverStr += " " + step.maneuver.modifier;
+        //             }
+        //             return {
+        //                 description: `${maneuverStr} ${step.name}`,
+        //                 coordinates: {
+        //                     lat: step.maneuver.location[1],
+        //                     lon: step.maneuver.location[0],
+        //                 },
+        //                 distance: step.distance,
+        //             };
+        //         });
+        //         res.json(out);
+        //     }
+        // } catch (error) {
+        //     console.error(error);
+        //     res.sendStatus(500);
+        // }
     });
 
     function convertToTile(lat, long, zoom) {
@@ -394,4 +430,5 @@ if (cluster.isMaster) {
     function bufferToStream(buffer) {
         return Readable.from(buffer);
     }
+
 }
