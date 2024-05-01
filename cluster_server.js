@@ -537,7 +537,7 @@ if (cluster.isMaster) {
             ctr++;
             try {
                 result = await fetch(url);
-                const buffer = await streamToBuffer(tile.body);
+                const buffer = await streamToBuffer(result.body);
                 await redisClient.set(cacheKey, buffer);
             } catch (error) {
                 return res.sendFile("/ocean.png", {root: __dirname});
