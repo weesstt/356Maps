@@ -1,4 +1,5 @@
 const cluster = require('cluster');
+const { count } = require('console');
 
 const dummyDirections = [{
     "description": "depart ",
@@ -201,7 +202,12 @@ const dummyDirections = [{
 const osrmServers = [
     "http://209.151.148.194:5000",
     "http://194.113.74.160:5000",
-    "http://194.113.73.240:5000"
+    "http://194.113.73.240:5000",
+    "http://209.151.151.234:5000",
+    "http://209.151.152.148:5000",
+    "http://209.151.150.1:5000",
+    "http://209.94.58.162:5000",
+    "http://209.94.59.151:5000"
 ];
 
 let server_idx = 0;
@@ -504,14 +510,16 @@ if (cluster.isMaster) {
 
         let url;
 
-        if(countTiles == 0){
+        if (countTiles == 0){
             url = `http://194.113.73.134/tile/${l}/${v}/${h}.png`;
-            countTiles++;
-        }else{
+        } else if (countTiles == 1) {
             url = `http://209.94.59.180/tile/${l}/${v}/${h}.png`;
-            countTiles--;
+        } else if (countTiles == 2) {
+            url = `http://194.113.75.228/tile/${l}/${v}/${h}.png`;
+        } else if (countTiles == 3) {
+            url = `http://194.113.73.9/tile/${l}/${v}/${h}.png`;
         }
-        
+        countTiles = (countTiles + 1) % 4;
 
         let result;
         if (ctr < 200) {
