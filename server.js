@@ -254,17 +254,31 @@ app.post("/convert", (req, res) => {
     res.json({ x_tile: xTile, y_tile: yTile });
 });
 
+let count = 0;
+
 app.get("/tiles/:l/:v/:h.png", async (req, res) => {
     // if (!req.session.loggedIn) {
     //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
     // }
     const { l, v, h } = req.params;
     res.setHeader("Content-Type", "image/png");
+
+    let url;
+
+    if(count == 0){
+        url = `http://194.113.73.134/tile/${l}/${v}/${h}.png`;
+        count++;
+    }else{
+        url = `http://209.94.59.180/tile/${l}/${v}/${h}.png`;
+        count--;
+    }
+    
+
     let result;
     if (ctr < 100) {
         ctr++;
         try {
-            result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
+            result = await fetch(url);
         } catch (error) {
             return res.sendFile("/ocean.png", {root: __dirname});
         }
@@ -274,7 +288,7 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
             return res.sendFile("/ocean.png", {root: __dirname});
         } else {
             try {
-                result = await fetch(`http://209.94.56.197/tile/${l}/${v}/${h}.png`);
+                result = await fetch(url);
             } catch (error) {
                 return res.sendFile("/ocean.png", {root: __dirname});
             }
