@@ -275,7 +275,7 @@ app.get("/tiles/:l/:v/:h.png", async (req, res) => {
     
 
     let result;
-    if (ctr < 100) {
+    if (ctr < 200) {
         ctr++;
         try {
             result = await fetch(url);
