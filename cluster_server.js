@@ -674,82 +674,9 @@ if (cluster.isMaster) {
                 res.json(out);
             }
         } catch (error) {
-            try {
-                const osrmRes = await fetch(osrmURL);
-                if (!osrmRes.ok) {
-                    // throw new Error("Failed to fetch from OSRM");
-                    const out = {
-                        description: "Failed to fetch from OSRM",
-                        coordinates: {
-                            lat: 0,
-                            lon: 0,
-                        },
-                        distance: 0,
-                    };
-                    return res.json(out);
-                }
-                const osrmData = await osrmRes.json();
-
-                if (osrmData.routes && osrmData.routes.length > 0) {
-                    const route = osrmData.routes[0].legs[0];
-
-                    const out = route.steps.map((step) => {
-                        let maneuverStr = step.maneuver.type;
-                        if (maneuverStr === "turn") {
-                            maneuverStr += " " + step.maneuver.modifier;
-                        }
-                        return {
-                            description: `${maneuverStr} ${step.name}`,
-                            coordinates: {
-                                lat: step.maneuver.location[1],
-                                lon: step.maneuver.location[0],
-                            },
-                            distance: step.distance,
-                        };
-                    });
-                    res.json(out);
-                }
-            } catch (error) {
-                try {
-                    const osrmRes = await fetch(osrmURL);
-                    if (!osrmRes.ok) {
-                        // throw new Error("Failed to fetch from OSRM");
-                        const out = {
-                            description: "Failed to fetch from OSRM",
-                            coordinates: {
-                                lat: 0,
-                                lon: 0,
-                            },
-                            distance: 0,
-                        };
-                        return res.json(out);
-                    }
-                    const osrmData = await osrmRes.json();
-
-                    if (osrmData.routes && osrmData.routes.length > 0) {
-                        const route = osrmData.routes[0].legs[0];
-
-                        const out = route.steps.map((step) => {
-                            let maneuverStr = step.maneuver.type;
-                            if (maneuverStr === "turn") {
-                                maneuverStr += " " + step.maneuver.modifier;
-                            }
-                            return {
-                                description: `${maneuverStr} ${step.name}`,
-                                coordinates: {
-                                    lat: step.maneuver.location[1],
-                                    lon: step.maneuver.location[0],
-                                },
-                                distance: step.distance,
-                            };
-                        });
-                        res.json(out);
-                    }
-                } catch (error) {
-                    console.error(error);
-                    // res.sendStatus(500);
-                }
-            }
+            return res.json(dummyDirections).catch((err) => {
+                console.error(err);
+            });
         }
     });
 
