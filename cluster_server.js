@@ -363,43 +363,17 @@ if (cluster.isMaster) {
         res.sendFile(__dirname + "/log-in.js");
     });
 
-    app.post("/api/adduser", (req, res) => {
-        const username = req.body.username;
-        const email = req.body.email;
-        const emailURLEncode = req.body.email.replace("+", "%2B");
-        const password = req.body.password;
+    app.post("/api/adduser", async (req, res) => {
+        const result = await fetch(`http://209.94.59.26/api/adduser`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(req.body),
+        });
 
-        if (username.length === 0 || email.length === 0 || password.length === 0) {
-            res.send({ status: "ERROR", errorMsg: "Missing arguments!" });
-            return;
-        }
-
-        UserController.createUser(username, email, password)
-            .then((verifyKey) => {
-                let mailOptions = {
-                    from: "warmup2@cse356.compas.cs.stonybrook.edu",
-                    to: email,
-                    subject:
-                        "Welcome to Warm Up Project 2, please verify your account.",
-                    text:
-                        "Thank you for signing up for warm up project 2. Please click the link below to verify your account and sign in.\n" +
-                        "http://green.cse356.compas.cs.stonybrook.edu/api/verify?email=" +
-                        emailURLEncode +
-                        "&key=" +
-                        verifyKey,
-                };
-
-                mailTransport.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        res.send({ status: "ERROR", errorMsg: error });
-                    } else {
-                        res.send({ status: "ok" });
-                    }
-                });
-            })
-            .catch((error) => {
-                res.send({ status: "ERROR", errorMsg: error });
-            });
+        res.setHeader("Content-Type", "application/json");
+        result.body.pipe(res);
     });
 
     app.get("/api/verify", (req, res) => {
