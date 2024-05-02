@@ -1,203 +1,232 @@
-const cluster = require('cluster');
-const { count } = require('console');
+const cluster = require("cluster");
+const { count } = require("console");
 
-const dummyDirections = [{
-    "description": "depart ",
-    "coordinates": {
-        "lat": 44.845336,
-        "lon": -75.278671
+const dummyDirections = [
+    {
+        description: "depart ",
+        coordinates: {
+            lat: 44.845336,
+            lon: -75.278671,
+        },
+        distance: 321.3,
     },
-    "distance": 321.3
-}, {
-    "description": "turn right ",
-    "coordinates": {
-        "lat": 44.842938,
-        "lon": -75.28074
+    {
+        description: "turn right ",
+        coordinates: {
+            lat: 44.842938,
+            lon: -75.28074,
+        },
+        distance: 1402.1,
     },
-    "distance": 1402.1
-}, {
-    "description": "turn left ",
-    "coordinates": {
-        "lat": 44.835034,
-        "lon": -75.294091
+    {
+        description: "turn left ",
+        coordinates: {
+            lat: 44.835034,
+            lon: -75.294091,
+        },
+        distance: 1184,
     },
-    "distance": 1184
-}, {
-    "description": "end of road ",
-    "coordinates": {
-        "lat": 44.827526,
-        "lon": -75.285459
+    {
+        description: "end of road ",
+        coordinates: {
+            lat: 44.827526,
+            lon: -75.285459,
+        },
+        distance: 285.6,
     },
-    "distance": 285.6
-}, {
-    "description": "turn right State Highway 37",
-    "coordinates": {
-        "lat": 44.825744,
-        "lon": -75.28298
+    {
+        description: "turn right State Highway 37",
+        coordinates: {
+            lat: 44.825744,
+            lon: -75.28298,
+        },
+        distance: 55755.1,
     },
-    "distance": 55755.1
-}, {
-    "description": "new name North Main Street",
-    "coordinates": {
-        "lat": 44.453277,
-        "lon": -75.692017
+    {
+        description: "new name North Main Street",
+        coordinates: {
+            lat: 44.453277,
+            lon: -75.692017,
+        },
+        distance: 1509.4,
     },
-    "distance": 1509.4
-}, {
-    "description": "new name State Highway 37",
-    "coordinates": {
-        "lat": 44.440537,
-        "lon": -75.69858
+    {
+        description: "new name State Highway 37",
+        coordinates: {
+            lat: 44.440537,
+            lon: -75.69858,
+        },
+        distance: 28943.9,
     },
-    "distance": 28943.9
-}, {
-    "description": "new name State Route 37",
-    "coordinates": {
-        "lat": 44.210031,
-        "lon": -75.827492
+    {
+        description: "new name State Route 37",
+        coordinates: {
+            lat: 44.210031,
+            lon: -75.827492,
+        },
+        distance: 21328.6,
     },
-    "distance": 21328.6
-}, {
-    "description": "turn right ",
-    "coordinates": {
-        "lat": 44.040164,
-        "lon": -75.900932
+    {
+        description: "turn right ",
+        coordinates: {
+            lat: 44.040164,
+            lon: -75.900932,
+        },
+        distance: 1361.6,
     },
-    "distance": 1361.6
-}, {
-    "description": "off ramp ",
-    "coordinates": {
-        "lat": 44.034638,
-        "lon": -75.91609
+    {
+        description: "off ramp ",
+        coordinates: {
+            lat: 44.034638,
+            lon: -75.91609,
+        },
+        distance: 257.2,
     },
-    "distance": 257.2
-}, {
-    "description": "merge ",
-    "coordinates": {
-        "lat": 44.032429,
-        "lon": -75.915611
+    {
+        description: "merge ",
+        coordinates: {
+            lat: 44.032429,
+            lon: -75.915611,
+        },
+        distance: 110739.9,
     },
-    "distance": 110739.9
-}, {
-    "description": "off ramp ",
-    "coordinates": {
-        "lat": 43.097479,
-        "lon": -76.159738
+    {
+        description: "off ramp ",
+        coordinates: {
+            lat: 43.097479,
+            lon: -76.159738,
+        },
+        distance: 758,
     },
-    "distance": 758
-}, {
-    "description": "fork ",
-    "coordinates": {
-        "lat": 43.095883,
-        "lon": -76.167537
+    {
+        description: "fork ",
+        coordinates: {
+            lat: 43.095883,
+            lon: -76.167537,
+        },
+        distance: 244.9,
     },
-    "distance": 244.9
-}, {
-    "description": "merge New York State Thruway",
-    "coordinates": {
-        "lat": 43.095609,
-        "lon": -76.170154
+    {
+        description: "merge New York State Thruway",
+        coordinates: {
+            lat: 43.095609,
+            lon: -76.170154,
+        },
+        distance: 234165.3,
     },
-    "distance": 234165.3
-}, {
-    "description": "fork New York State Thruway",
-    "coordinates": {
-        "lat": 42.839082,
-        "lon": -78.793021
+    {
+        description: "fork New York State Thruway",
+        coordinates: {
+            lat: 42.839082,
+            lon: -78.793021,
+        },
+        distance: 62269.6,
     },
-    "distance": 62269.6
-}, {
-    "description": "off ramp ",
-    "coordinates": {
-        "lat": 42.463519,
-        "lon": -79.299616
+    {
+        description: "off ramp ",
+        coordinates: {
+            lat: 42.463519,
+            lon: -79.299616,
+        },
+        distance: 1678.3,
     },
-    "distance": 1678.3
-}, {
-    "description": "turn straight Bennett Road",
-    "coordinates": {
-        "lat": 42.459495,
-        "lon": -79.312768
+    {
+        description: "turn straight Bennett Road",
+        coordinates: {
+            lat: 42.459495,
+            lon: -79.312768,
+        },
+        distance: 1929.9,
     },
-    "distance": 1929.9
-}, {
-    "description": "new name Lamphere Street",
-    "coordinates": {
-        "lat": 42.475496,
-        "lon": -79.321906
+    {
+        description: "new name Lamphere Street",
+        coordinates: {
+            lat: 42.475496,
+            lon: -79.321906,
+        },
+        distance: 369.3,
     },
-    "distance": 369.3
-}, {
-    "description": "new name Maple Avenue",
-    "coordinates": {
-        "lat": 42.478553,
-        "lon": -79.323671
+    {
+        description: "new name Maple Avenue",
+        coordinates: {
+            lat: 42.478553,
+            lon: -79.323671,
+        },
+        distance: 448.5,
     },
-    "distance": 448.5
-}, {
-    "description": "new name Main Street",
-    "coordinates": {
-        "lat": 42.481309,
-        "lon": -79.327494
+    {
+        description: "new name Main Street",
+        coordinates: {
+            lat: 42.481309,
+            lon: -79.327494,
+        },
+        distance: 782.2,
     },
-    "distance": 782.2
-}, {
-    "description": "turn left Lake Shore Drive East",
-    "coordinates": {
-        "lat": 42.488203,
-        "lon": -79.329425
+    {
+        description: "turn left Lake Shore Drive East",
+        coordinates: {
+            lat: 42.488203,
+            lon: -79.329425,
+        },
+        distance: 2792.5,
     },
-    "distance": 2792.5
-}, {
-    "description": "new name West Lake Road",
-    "coordinates": {
-        "lat": 42.479277,
-        "lon": -79.359851
+    {
+        description: "new name West Lake Road",
+        coordinates: {
+            lat: 42.479277,
+            lon: -79.359851,
+        },
+        distance: 5481.2,
     },
-    "distance": 5481.2
-}, {
-    "description": "turn right Van Buren Bay Court",
-    "coordinates": {
-        "lat": 42.450142,
-        "lon": -79.406091
+    {
+        description: "turn right Van Buren Bay Court",
+        coordinates: {
+            lat: 42.450142,
+            lon: -79.406091,
+        },
+        distance: 86.8,
     },
-    "distance": 86.8
-}, {
-    "description": "new name Van Buren Bay Road",
-    "coordinates": {
-        "lat": 42.450127,
-        "lon": -79.407132
+    {
+        description: "new name Van Buren Bay Road",
+        coordinates: {
+            lat: 42.450127,
+            lon: -79.407132,
+        },
+        distance: 203.5,
     },
-    "distance": 203.5
-}, {
-    "description": "turn right 1st Street",
-    "coordinates": {
-        "lat": 42.450139,
-        "lon": -79.409607
+    {
+        description: "turn right 1st Street",
+        coordinates: {
+            lat: 42.450139,
+            lon: -79.409607,
+        },
+        distance: 103.2,
     },
-    "distance": 103.2
-}, {
-    "description": "turn left Lakeside Boulevard",
-    "coordinates": {
-        "lat": 42.451068,
-        "lon": -79.40961
+    {
+        description: "turn left Lakeside Boulevard",
+        coordinates: {
+            lat: 42.451068,
+            lon: -79.40961,
+        },
+        distance: 71.3,
     },
-    "distance": 71.3
-}, {
-    "description": "continue Lakeside Boulevard",
-    "coordinates": {
-        "lat": 42.450966,
-        "lon": -79.410466
+    {
+        description: "continue Lakeside Boulevard",
+        coordinates: {
+            lat: 42.450966,
+            lon: -79.410466,
+        },
+        distance: 686.3,
     },
-    "distance": 686.3
-}, {
-    "description": "arrive Lakeside Boulevard",
-    "coordinates": {
-        "lat": 42.453613,
-        "lon": -79.416804
+    {
+        description: "arrive Lakeside Boulevard",
+        coordinates: {
+            lat: 42.453613,
+            lon: -79.416804,
+        },
+        distance: 0,
     },
-    "distance": 0
-}];
+];
 
 const osrmServers = [
     "34.73.196.57:5000",
@@ -207,7 +236,7 @@ const osrmServers = [
     "35.196.204.58:5000",
     "35.229.46.179:5000",
     "34.74.188.250:5000",
-    "34.139.180.152:5000"
+    "34.139.180.152:5000",
 ];
 
 let server_idx = 0;
@@ -225,7 +254,7 @@ if (cluster.isMaster) {
         cluster.fork();
     }
 
-    cluster.on('exit', (worker, code, signal) => {
+    cluster.on("exit", (worker, code, signal) => {
         console.log(`M: worker ${worker.process.pid} dead`);
     });
 } else {
@@ -246,21 +275,23 @@ if (cluster.isMaster) {
     var rctr = 0;
 
     const app = express();
-    const mongoDB = process.argv[3]
+    const mongoDB = process.argv[3];
     var db;
     const cors = require("cors");
 
     const redisClient = redis.createClient({
-        url: "redis://localhost:6379"
-    })
+        url: "redis://localhost:6379",
+    });
     redisClient.connect();
-    redisClient.on("error", (err) => console.error(err))
+    redisClient.on("error", (err) => console.error(err));
 
     const server = app.listen(80, () => {
         if (process.argv.length !== 4) {
             server.close(() => {
                 console.log("Incorrect number of arguments!");
-                console.log("Correct Usage: node server.js <SessionSecretKey> <mongoatlasdb>");
+                console.log(
+                    "Correct Usage: node server.js <SessionSecretKey> <mongoatlasdb>"
+                );
                 process.exit(0);
             });
         }
@@ -290,7 +321,7 @@ if (cluster.isMaster) {
     process.on("SIGBREAK", () => {
         ctr = 0;
         rctr = 0;
-    })
+    });
 
     app.use(
         cors({
@@ -484,7 +515,7 @@ if (cluster.isMaster) {
 
         let url;
 
-        if (countTiles == 0){
+        if (countTiles == 0) {
             url = `http://34.75.72.163/tile/${l}/${v}/${h}.png`;
         } else if (countTiles == 1) {
             url = `http://35.243.146.198/tile/${l}/${v}/${h}.png`;
@@ -505,17 +536,17 @@ if (cluster.isMaster) {
             try {
                 result = await fetch(url);
             } catch (error) {
-                return res.sendFile("/ocean.png", {root: __dirname});
+                return res.sendFile("/ocean.png", { root: __dirname });
             }
             result.body.pipe(res);
         } else {
             if (Math.random() < 0.5) {
-                return res.sendFile("/ocean.png", {root: __dirname});
+                return res.sendFile("/ocean.png", { root: __dirname });
             } else {
                 try {
                     result = await fetch(url);
                 } catch (error) {
-                    return res.sendFile("/ocean.png", {root: __dirname});
+                    return res.sendFile("/ocean.png", { root: __dirname });
                 }
                 result.body.pipe(res);
             }
@@ -539,7 +570,7 @@ if (cluster.isMaster) {
 
         let url;
 
-        if (countTurn == 0){
+        if (countTurn == 0) {
             url = `http://34.75.72.163/tile/15/${xTile}/${yTile}.png`;
         } else if (countTurn == 1) {
             url = `http://35.243.146.198/tile/15/${xTile}/${yTile}.png`;
@@ -579,6 +610,10 @@ if (cluster.isMaster) {
         // res.setHeader("Content-Type", "application/json");
         // result.body.pipe(res);
 
+        setTimeout(() => {
+            return res.json(dummyDirections);
+        }, 3000);
+
         if (rctr >= 200) {
             if (Math.random() < 0.3) {
                 return res.json(dummyDirections);
@@ -599,7 +634,7 @@ if (cluster.isMaster) {
         try {
             const cachedData = await redisClient.get(cacheKey);
             if (cachedData) {
-                return res.json(JSON.parse(cachedData))
+                return res.json(JSON.parse(cachedData));
             }
             const osrmRes = await fetch(osrmURL);
             if (!osrmRes.ok) {
@@ -608,11 +643,11 @@ if (cluster.isMaster) {
                     description: "Failed to fetch from OSRM",
                     coordinates: {
                         lat: 0,
-                        lon: 0
+                        lon: 0,
                     },
-                    distance: 0
-                }
-                return res.json(out)
+                    distance: 0,
+                };
+                return res.json(out);
             }
             const osrmData = await osrmRes.json();
 
@@ -647,17 +682,17 @@ if (cluster.isMaster) {
                         description: "Failed to fetch from OSRM",
                         coordinates: {
                             lat: 0,
-                            lon: 0
+                            lon: 0,
                         },
-                        distance: 0
-                    }
-                    return res.json(out)
+                        distance: 0,
+                    };
+                    return res.json(out);
                 }
                 const osrmData = await osrmRes.json();
-    
+
                 if (osrmData.routes && osrmData.routes.length > 0) {
                     const route = osrmData.routes[0].legs[0];
-    
+
                     const out = route.steps.map((step) => {
                         let maneuverStr = step.maneuver.type;
                         if (maneuverStr === "turn") {
@@ -683,17 +718,17 @@ if (cluster.isMaster) {
                             description: "Failed to fetch from OSRM",
                             coordinates: {
                                 lat: 0,
-                                lon: 0
+                                lon: 0,
                             },
-                            distance: 0
-                        }
-                        return res.json(out)
+                            distance: 0,
+                        };
+                        return res.json(out);
                     }
                     const osrmData = await osrmRes.json();
-        
+
                     if (osrmData.routes && osrmData.routes.length > 0) {
                         const route = osrmData.routes[0].legs[0];
-        
+
                         const out = route.steps.map((step) => {
                             let maneuverStr = step.maneuver.type;
                             if (maneuverStr === "turn") {
@@ -712,7 +747,7 @@ if (cluster.isMaster) {
                     }
                 } catch (error) {
                     console.error(error);
-                    res.sendStatus(500);
+                    // res.sendStatus(500);
                 }
             }
         }
@@ -746,5 +781,4 @@ if (cluster.isMaster) {
     function bufferToStream(buffer) {
         return Readable.from(buffer);
     }
-
 }
