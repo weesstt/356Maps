@@ -200,14 +200,7 @@ const dummyDirections = [{
 }];
 
 const osrmServers = [
-    "http://209.151.148.194:5000",
-    "http://194.113.74.160:5000",
-    "http://194.113.73.240:5000",
-    "http://209.151.151.234:5000",
-    "http://209.151.152.148:5000",
-    "http://209.151.150.1:5000",
-    "http://209.94.58.162:5000",
-    "http://209.94.59.151:5000"
+    
 ];
 
 let server_idx = 0;
@@ -246,7 +239,7 @@ if (cluster.isMaster) {
     var rctr = 0;
 
     const app = express();
-    const mongoDB = "mongodb://127.0.0.1:27017/warmup2";
+    const mongoDB = process.argv[3]
     var db;
     const cors = require("cors");
 
@@ -257,10 +250,10 @@ if (cluster.isMaster) {
     redisClient.on("error", (err) => console.error(err))
 
     const server = app.listen(80, () => {
-        if (process.argv.length !== 3) {
+        if (process.argv.length !== 4) {
             server.close(() => {
                 console.log("Incorrect number of arguments!");
-                console.log("Correct Usage: node server.js <SessionSecretKey>");
+                console.log("Correct Usage: node server.js <SessionSecretKey> <mongoatlasdb>");
                 process.exit(0);
             });
         }
@@ -511,13 +504,13 @@ if (cluster.isMaster) {
         let url;
 
         if (countTiles == 0){
-            url = `http://194.113.73.134/tile/${l}/${v}/${h}.png`;
+            url = `http://34.75.72.163/tile/${l}/${v}/${h}.png`;
         } else if (countTiles == 1) {
-            url = `http://209.94.59.180/tile/${l}/${v}/${h}.png`;
+            url = `http://35.243.146.198/tile/${l}/${v}/${h}.png`;
         } else if (countTiles == 2) {
-            url = `http://194.113.75.228/tile/${l}/${v}/${h}.png`;
+            url = `http://34.139.66.54/tile/${l}/${v}/${h}.png`;
         } else if (countTiles == 3) {
-            url = `http://194.113.73.9/tile/${l}/${v}/${h}.png`;
+            url = `http://35.237.143.108/tile/${l}/${v}/${h}.png`;
         }
         countTiles = (countTiles + 1) % 4;
 
@@ -562,10 +555,10 @@ if (cluster.isMaster) {
         let url;
 
         if(countTurn == 0){
-            url = `http://194.113.73.134/tile/15/${xTile}/${yTile}.png`;
+            url = `http://34.75.72.163/tile/15/${xTile}/${yTile}.png`;
             countTurn++;
         }else{
-            url = `http://209.94.59.180/tile/15/${xTile}/${yTile}.png`;
+            url = `http://35.243.146.198/tile/15/${xTile}/${yTile}.png`;
             countTurn--;
         }
 
