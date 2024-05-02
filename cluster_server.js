@@ -540,17 +540,17 @@ if (cluster.isMaster) {
         let url;
 
         if (countTurn == 0){
-            url = `http://34.75.72.163/tile/${l}/${v}/${h}.png`;
+            url = `http://34.75.72.163/tile/15/${xTile}/${yTile}.png`;
         } else if (countTurn == 1) {
-            url = `http://35.243.146.198/tile/${l}/${v}/${h}.png`;
+            url = `http://35.243.146.198/tile/15/${xTile}/${yTile}.png`;
         } else if (countTurn == 2) {
-            url = `http://34.139.66.54/tile/${l}/${v}/${h}.png`;
+            url = `http://34.139.66.54/tile/15/${xTile}/${yTile}.png`;
         } else if (countTurn == 3) {
-            url = `http://35.237.143.108/tile/${l}/${v}/${h}.png`;
+            url = `http://35.237.143.108/tile/15/${xTile}/${yTile}.png`;
         } else if (countTurn == 4) {
-            url = `http://34.139.198.82/tile/${l}/${v}/${h}.png`;
+            url = `http://34.139.198.82/tile/15/${xTile}/${yTile}.png`;
         } else if (countTurn == 5) {
-            url = `http://34.75.137.181/tile/${l}/${v}/${h}.png`;
+            url = `http://34.75.137.181/tile/15/${xTile}/${yTile}.png`;
         }
         countTurn = (countTurn + 1) % 6;
 
