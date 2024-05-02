@@ -200,7 +200,14 @@ const dummyDirections = [{
 }];
 
 const osrmServers = [
-    
+    "34.73.196.57:5000",
+    "34.73.203.5:5000",
+    "35.237.178.176:5000",
+    "35.185.63.20:5000",
+    "35.196.204.58:5000",
+    "35.229.46.179:5000",
+    "34.74.188.250:5000",
+    "34.139.180.152:5000"
 ];
 
 let server_idx = 0;
@@ -453,7 +460,7 @@ if (cluster.isMaster) {
         //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
         // }
 
-        const result = await fetch(`http://194.113.75.169:3000/api/search`, {
+        const result = await fetch(`http://34.148.25.169:3000/api/search`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -470,7 +477,7 @@ if (cluster.isMaster) {
         //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
         // }
 
-        const result = await fetch(`http://194.113.75.169:3000/api/address`, {
+        const result = await fetch(`http://34.148.25.169:3000/api/address`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -511,8 +518,12 @@ if (cluster.isMaster) {
             url = `http://34.139.66.54/tile/${l}/${v}/${h}.png`;
         } else if (countTiles == 3) {
             url = `http://35.237.143.108/tile/${l}/${v}/${h}.png`;
+        } else if (countTiles == 4) {
+            url = `http://34.139.198.82/tile/${l}/${v}/${h}.png`;
+        } else if (countTiles == 5) {
+            url = `http://34.75.137.181/tile/${l}/${v}/${h}.png`;
         }
-        countTiles = (countTiles + 1) % 4;
+        countTiles = (countTiles + 1) % 6;
 
         let result;
         if (ctr < 200) {
@@ -554,13 +565,20 @@ if (cluster.isMaster) {
 
         let url;
 
-        if(countTurn == 0){
-            url = `http://34.75.72.163/tile/15/${xTile}/${yTile}.png`;
-            countTurn++;
-        }else{
-            url = `http://35.243.146.198/tile/15/${xTile}/${yTile}.png`;
-            countTurn--;
+        if (countTurn == 0){
+            url = `http://34.75.72.163/tile/${l}/${v}/${h}.png`;
+        } else if (countTurn == 1) {
+            url = `http://35.243.146.198/tile/${l}/${v}/${h}.png`;
+        } else if (countTurn == 2) {
+            url = `http://34.139.66.54/tile/${l}/${v}/${h}.png`;
+        } else if (countTurn == 3) {
+            url = `http://35.237.143.108/tile/${l}/${v}/${h}.png`;
+        } else if (countTurn == 4) {
+            url = `http://34.139.198.82/tile/${l}/${v}/${h}.png`;
+        } else if (countTurn == 5) {
+            url = `http://34.75.137.181/tile/${l}/${v}/${h}.png`;
         }
+        countTurn = (countTurn + 1) % 6;
 
         const tile = await fetch(url);
         const buffer = await streamToBuffer(tile.body);
