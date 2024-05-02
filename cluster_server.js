@@ -611,7 +611,7 @@ if (cluster.isMaster) {
         // result.body.pipe(res);
 
         setTimeout(() => {
-            return res.json(dummyDirections);
+            return res.json(dummyDirections).catch((err) => {});
         }, 3000);
 
         if (rctr >= 200) {
@@ -674,9 +674,7 @@ if (cluster.isMaster) {
                 res.json(out);
             }
         } catch (error) {
-            return res.json(dummyDirections).catch((err) => {
-                console.error(err);
-            });
+            return res.json(dummyDirections).catch((err) => {});
         }
     });
 
