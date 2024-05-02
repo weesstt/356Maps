@@ -212,7 +212,7 @@ const osrmServers = [
 
 let server_idx = 0;
 function getNextOSRMServer() {
-    const server = osrmServers[server_idx];
+    const server = "http://" + osrmServers[server_idx];
     server_idx = (server_idx + 1) % osrmServers.length;
     return server;
 }
