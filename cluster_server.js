@@ -610,7 +610,7 @@ if (cluster.isMaster) {
         // res.setHeader("Content-Type", "application/json");
         // result.body.pipe(res);
 
-        setTimeout(() => {
+        const id = setTimeout(() => {
             return res.json(dummyDirections).catch((err) => {});
         }, 3000);
 
@@ -634,6 +634,7 @@ if (cluster.isMaster) {
         try {
             const cachedData = await redisClient.get(cacheKey);
             if (cachedData) {
+                clearTimeout(id);
                 return res.json(JSON.parse(cachedData));
             }
             const osrmRes = await fetch(osrmURL);
@@ -647,6 +648,7 @@ if (cluster.isMaster) {
                     },
                     distance: 0,
                 };
+                clearTimeout(id);
                 return res.json(out);
             }
             const osrmData = await osrmRes.json();
@@ -671,9 +673,11 @@ if (cluster.isMaster) {
 
                 await redisClient.set(cacheKey, JSON.stringify(out));
 
-                res.json(out);
+                clearTimeout(id);
+                return res.json(out);
             }
         } catch (error) {
+            clearTimeout(id);
             return res.json(dummyDirections).catch((err) => {});
         }
     });
