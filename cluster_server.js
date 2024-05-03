@@ -1,256 +1,10 @@
 const cluster = require("cluster");
-const { count } = require("console");
-
-const dummyDirections = [
-    {
-        description: "depart ",
-        coordinates: {
-            lat: 44.845336,
-            lon: -75.278671,
-        },
-        distance: 321.3,
-    },
-    {
-        description: "turn right ",
-        coordinates: {
-            lat: 44.842938,
-            lon: -75.28074,
-        },
-        distance: 1402.1,
-    },
-    {
-        description: "turn left ",
-        coordinates: {
-            lat: 44.835034,
-            lon: -75.294091,
-        },
-        distance: 1184,
-    },
-    {
-        description: "end of road ",
-        coordinates: {
-            lat: 44.827526,
-            lon: -75.285459,
-        },
-        distance: 285.6,
-    },
-    {
-        description: "turn right State Highway 37",
-        coordinates: {
-            lat: 44.825744,
-            lon: -75.28298,
-        },
-        distance: 55755.1,
-    },
-    {
-        description: "new name North Main Street",
-        coordinates: {
-            lat: 44.453277,
-            lon: -75.692017,
-        },
-        distance: 1509.4,
-    },
-    {
-        description: "new name State Highway 37",
-        coordinates: {
-            lat: 44.440537,
-            lon: -75.69858,
-        },
-        distance: 28943.9,
-    },
-    {
-        description: "new name State Route 37",
-        coordinates: {
-            lat: 44.210031,
-            lon: -75.827492,
-        },
-        distance: 21328.6,
-    },
-    {
-        description: "turn right ",
-        coordinates: {
-            lat: 44.040164,
-            lon: -75.900932,
-        },
-        distance: 1361.6,
-    },
-    {
-        description: "off ramp ",
-        coordinates: {
-            lat: 44.034638,
-            lon: -75.91609,
-        },
-        distance: 257.2,
-    },
-    {
-        description: "merge ",
-        coordinates: {
-            lat: 44.032429,
-            lon: -75.915611,
-        },
-        distance: 110739.9,
-    },
-    {
-        description: "off ramp ",
-        coordinates: {
-            lat: 43.097479,
-            lon: -76.159738,
-        },
-        distance: 758,
-    },
-    {
-        description: "fork ",
-        coordinates: {
-            lat: 43.095883,
-            lon: -76.167537,
-        },
-        distance: 244.9,
-    },
-    {
-        description: "merge New York State Thruway",
-        coordinates: {
-            lat: 43.095609,
-            lon: -76.170154,
-        },
-        distance: 234165.3,
-    },
-    {
-        description: "fork New York State Thruway",
-        coordinates: {
-            lat: 42.839082,
-            lon: -78.793021,
-        },
-        distance: 62269.6,
-    },
-    {
-        description: "off ramp ",
-        coordinates: {
-            lat: 42.463519,
-            lon: -79.299616,
-        },
-        distance: 1678.3,
-    },
-    {
-        description: "turn straight Bennett Road",
-        coordinates: {
-            lat: 42.459495,
-            lon: -79.312768,
-        },
-        distance: 1929.9,
-    },
-    {
-        description: "new name Lamphere Street",
-        coordinates: {
-            lat: 42.475496,
-            lon: -79.321906,
-        },
-        distance: 369.3,
-    },
-    {
-        description: "new name Maple Avenue",
-        coordinates: {
-            lat: 42.478553,
-            lon: -79.323671,
-        },
-        distance: 448.5,
-    },
-    {
-        description: "new name Main Street",
-        coordinates: {
-            lat: 42.481309,
-            lon: -79.327494,
-        },
-        distance: 782.2,
-    },
-    {
-        description: "turn left Lake Shore Drive East",
-        coordinates: {
-            lat: 42.488203,
-            lon: -79.329425,
-        },
-        distance: 2792.5,
-    },
-    {
-        description: "new name West Lake Road",
-        coordinates: {
-            lat: 42.479277,
-            lon: -79.359851,
-        },
-        distance: 5481.2,
-    },
-    {
-        description: "turn right Van Buren Bay Court",
-        coordinates: {
-            lat: 42.450142,
-            lon: -79.406091,
-        },
-        distance: 86.8,
-    },
-    {
-        description: "new name Van Buren Bay Road",
-        coordinates: {
-            lat: 42.450127,
-            lon: -79.407132,
-        },
-        distance: 203.5,
-    },
-    {
-        description: "turn right 1st Street",
-        coordinates: {
-            lat: 42.450139,
-            lon: -79.409607,
-        },
-        distance: 103.2,
-    },
-    {
-        description: "turn left Lakeside Boulevard",
-        coordinates: {
-            lat: 42.451068,
-            lon: -79.40961,
-        },
-        distance: 71.3,
-    },
-    {
-        description: "continue Lakeside Boulevard",
-        coordinates: {
-            lat: 42.450966,
-            lon: -79.410466,
-        },
-        distance: 686.3,
-    },
-    {
-        description: "arrive Lakeside Boulevard",
-        coordinates: {
-            lat: 42.453613,
-            lon: -79.416804,
-        },
-        distance: 0,
-    },
-];
-
-const osrmServers = [
-    "34.73.196.57:5000",
-    "34.73.203.5:5000",
-    "35.237.178.176:5000",
-    "35.185.63.20:5000",
-    "35.196.204.58:5000",
-    "35.229.46.179:5000",
-    "34.74.188.250:5000",
-    "34.139.180.152:5000",
-];
-
-let server_idx = 0;
-function getNextOSRMServer() {
-    const server = "http://" + osrmServers[server_idx];
-    server_idx = (server_idx + 1) % osrmServers.length;
-    return server;
-}
 
 if (cluster.isMaster) {
     console.log(`Master: ${process.pid}`);
 
-    // 32 cores
-    for (let i = 0; i < 32; i++) {
+    // Cores
+    for (let i = 0; i < 8; i++) {
         cluster.fork();
     }
 
@@ -285,7 +39,7 @@ if (cluster.isMaster) {
     redisClient.connect();
     redisClient.on("error", (err) => console.error(err));
 
-    const server = app.listen(80, () => {
+    const server = app.listen(3000, () => {
         if (process.argv.length !== 4) {
             server.close(() => {
                 console.log("Incorrect number of arguments!");
@@ -325,7 +79,7 @@ if (cluster.isMaster) {
 
     app.use(
         cors({
-            origin: "http://localhost:80",
+            origin: "http://localhost:3000",
             methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD"],
             credentials: true,
         })
@@ -394,17 +148,47 @@ if (cluster.isMaster) {
         res.sendFile(__dirname + "/log-in.js");
     });
 
-    app.post("/api/adduser", async (req, res) => {
-        const result = await fetch(`http://209.94.59.26/api/adduser`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(req.body),
-        });
+    app.post("/api/adduser", (req, res) => {
+        const username = req.body.username;
+        const email = req.body.email;
+        const emailURLEncode = req.body.email.replace("+", "%2B");
+        const password = req.body.password;
 
-        res.setHeader("Content-Type", "application/json");
-        result.body.pipe(res);
+        if (
+            username.length === 0 ||
+            email.length === 0 ||
+            password.length === 0
+        ) {
+            res.send({ status: "ERROR", errorMsg: "Missing arguments!" });
+            return;
+        }
+
+        UserController.createUser(username, email, password)
+            .then((verifyKey) => {
+                let mailOptions = {
+                    from: "warmup2@cse356.compas.cs.stonybrook.edu",
+                    to: email,
+                    subject:
+                        "Welcome to Warm Up Project 2, please verify your account.",
+                    text:
+                        "Thank you for signing up for warm up project 2. Please click the link below to verify your account and sign in.\n" +
+                        "http://green.cse356.compas.cs.stonybrook.edu/api/verify?email=" +
+                        emailURLEncode +
+                        "&key=" +
+                        verifyKey,
+                };
+
+                mailTransport.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        res.send({ status: "ERROR", errorMsg: error });
+                    } else {
+                        res.send({ status: "ok" });
+                    }
+                });
+            })
+            .catch((error) => {
+                res.send({ status: "ERROR", errorMsg: error });
+            });
     });
 
     app.get("/api/verify", (req, res) => {
@@ -461,10 +245,6 @@ if (cluster.isMaster) {
     });
 
     app.post("/api/search", async (req, res) => {
-        // if (!req.session.loggedIn) {
-        //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-        // }
-
         const result = await fetch(`http://34.148.25.169:3000/api/search`, {
             method: "POST",
             headers: {
@@ -478,10 +258,6 @@ if (cluster.isMaster) {
     });
 
     app.post("/api/address", async (req, res) => {
-        // if (!req.session.loggedIn) {
-        //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-        // }
-
         const result = await fetch(`http://34.148.25.169:3000/api/address`, {
             method: "POST",
             headers: {
@@ -495,71 +271,14 @@ if (cluster.isMaster) {
     });
 
     app.post("/convert", (req, res) => {
-        // if (!req.session.loggedIn) {
-        //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-        // }
-
         const { lat, long, zoom } = req.body;
         const { xTile, yTile } = convertToTile(lat, long, zoom);
         res.json({ x_tile: xTile, y_tile: yTile });
     });
 
-    let countTiles = 0;
-
-    app.get("/tiles/:l/:v/:h.png", async (req, res) => {
-        // if (!req.session.loggedIn) {
-        //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-        // }
-        const { l, v, h } = req.params;
-        res.setHeader("Content-Type", "image/png");
-
-        let url;
-
-        if (countTiles == 0) {
-            url = `http://34.75.72.163/tile/${l}/${v}/${h}.png`;
-        } else if (countTiles == 1) {
-            url = `http://35.243.146.198/tile/${l}/${v}/${h}.png`;
-        } else if (countTiles == 2) {
-            url = `http://34.139.66.54/tile/${l}/${v}/${h}.png`;
-        } else if (countTiles == 3) {
-            url = `http://35.237.143.108/tile/${l}/${v}/${h}.png`;
-        } else if (countTiles == 4) {
-            url = `http://34.139.198.82/tile/${l}/${v}/${h}.png`;
-        } else if (countTiles == 5) {
-            url = `http://34.75.137.181/tile/${l}/${v}/${h}.png`;
-        }
-        countTiles = (countTiles + 1) % 6;
-
-        let result;
-        if (ctr < 200) {
-            ctr++;
-            try {
-                result = await fetch(url);
-            } catch (error) {
-                return res.sendFile("/ocean.png", { root: __dirname });
-            }
-            result.body.pipe(res);
-        } else {
-            if (Math.random() < 0.5) {
-                return res.sendFile("/ocean.png", { root: __dirname });
-            } else {
-                try {
-                    result = await fetch(url);
-                } catch (error) {
-                    return res.sendFile("/ocean.png", { root: __dirname });
-                }
-                result.body.pipe(res);
-            }
-        }
-    });
-
     let countTurn = 0;
 
     app.get("/turn/:TL/:BR.png", async (req, res) => {
-        // if (!req.session.loggedIn) {
-        //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-        // }
-
         const { TL, BR } = req.params;
         const [topLat, topLon] = TL.split(",");
         const [bottomLat, bottomLon] = BR.split(",");
@@ -592,98 +311,6 @@ if (cluster.isMaster) {
 
         res.setHeader("Content-Type", "image/png");
         stream.pipe(res);
-    });
-
-    app.post("/api/route", async (req, res) => {
-        // if (!req.session.loggedIn) {
-        //     return res.send({ status: "ERROR", errorMsg: "Not logged in" });
-        // }
-
-        // const result = await fetch(`http://209.94.56.163:3000/api/route`, {
-        //     method: "POST",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify(req.body),
-        // });
-
-        // res.setHeader("Content-Type", "application/json");
-        // result.body.pipe(res);
-
-        const id = setTimeout(() => {
-            try {
-                return res.json(dummyDirections);
-            } catch {}
-        }, 3000);
-
-        if (rctr >= 200) {
-            if (Math.random() < 0.3) {
-                return res.json(dummyDirections);
-            }
-        } else {
-            rctr++;
-        }
-
-        const OSRM_BASE_URL = getNextOSRMServer();
-
-        const { source, destination } = req.body;
-        const srcCoords = `${source.lon},${source.lat}`;
-        const destCoords = `${destination.lon},${destination.lat}`;
-        const cacheKey = `${srcCoords};${destCoords}`;
-
-        const osrmURL = `${OSRM_BASE_URL}/route/v1/driving/${srcCoords};${destCoords}?overview=false&steps=true`;
-
-        try {
-            const cachedData = await redisClient.get(cacheKey);
-            if (cachedData) {
-                clearTimeout(id);
-                return res.json(JSON.parse(cachedData));
-            }
-            const osrmRes = await fetch(osrmURL);
-            if (!osrmRes.ok) {
-                // throw new Error("Failed to fetch from OSRM");
-                const out = {
-                    description: "Failed to fetch from OSRM",
-                    coordinates: {
-                        lat: 0,
-                        lon: 0,
-                    },
-                    distance: 0,
-                };
-                clearTimeout(id);
-                return res.json(out);
-            }
-            const osrmData = await osrmRes.json();
-
-            if (osrmData.routes && osrmData.routes.length > 0) {
-                const route = osrmData.routes[0].legs[0];
-
-                const out = route.steps.map((step) => {
-                    let maneuverStr = step.maneuver.type;
-                    if (maneuverStr === "turn") {
-                        maneuverStr += " " + step.maneuver.modifier;
-                    }
-                    return {
-                        description: `${maneuverStr} ${step.name}`,
-                        coordinates: {
-                            lat: step.maneuver.location[1],
-                            lon: step.maneuver.location[0],
-                        },
-                        distance: step.distance,
-                    };
-                });
-
-                await redisClient.set(cacheKey, JSON.stringify(out));
-
-                clearTimeout(id);
-                return res.json(out);
-            }
-        } catch (error) {
-            clearTimeout(id);
-            try {
-                return res.json(dummyDirections);
-            } catch {}
-        }
     });
 
     function convertToTile(lat, long, zoom) {
