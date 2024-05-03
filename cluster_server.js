@@ -20,7 +20,6 @@ if (cluster.isMaster) {
     const nodemailer = require("nodemailer");
     const { Readable } = require("stream");
     const fetch = require("node-fetch");
-    const redis = require("redis");
     const morgan = require("morgan");
 
     var sessions = require("express-session");
@@ -32,12 +31,6 @@ if (cluster.isMaster) {
     const mongoDB = process.argv[3];
     var db;
     const cors = require("cors");
-
-    const redisClient = redis.createClient({
-        url: "redis://localhost:6379",
-    });
-    redisClient.connect();
-    redisClient.on("error", (err) => console.error(err));
 
     const server = app.listen(3000, () => {
         if (process.argv.length !== 4) {
